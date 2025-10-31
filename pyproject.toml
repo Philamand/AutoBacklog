@@ -1,0 +1,20 @@
+[project]
+name = "autobacklog"
+version = "0.1.0"
+description = "A Backlog app that automatically import your PSN library"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "django>=4.2.21",
+    "django-allauth[socialaccount]>=65.9.0",
+    "django-dramatiq>=0.13.0",
+    "django-pwa>=2.0.1",
+    "dramatiq[redis]>=1.18.0",
+    "gunicorn>=23.0.0",
+    "httpx>=0.28.1",
+    "psnawp>=2.1.0",
+    "psycopg>=3.2.9",
+    "pydantic>=2.11.5",
+    "python-dotenv>=1.1.0",
+    "redis>=6.1.0",
+]
