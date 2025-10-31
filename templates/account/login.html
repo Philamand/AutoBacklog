@@ -1,0 +1,44 @@
+{% extends "account/base_entrance.html" %}
+{% load i18n %}
+{% load allauth account %}
+{% block head_title %}
+    {% trans "Sign In" %}
+{% endblock head_title %}
+{% block content %}
+            <div class="mb-3 w-100 d-flex justify-content-center">
+              <h2>Log In</h2>
+            </div>
+            
+            {% if form.errors %}
+              <p class="text-center text-danger-emphasis">Your username and password didn't match. Please try again.</p>
+            {% endif %}
+            {% if next %}
+            {% if user.is_authenticated %}
+                <p class="text-center text-danger-emphasis">Your account doesn't have access to this page. To proceed,
+                please login with an account that has access.</p>
+                {% else %}
+                <p class="text-center text-danger-emphasis">Please login to see this page.</p>
+                {% endif %}
+            {% endif %}
+            <hr />
+            {% include 'registration/social_buttons.html' %}
+            <hr />
+            <form method="post" action="{% url 'account_login' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="login">
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password">
+              </div>
+              <div class="mb-3 fs-6">
+                <a href="{% url 'account_reset_password' %}">Forgot Password ?</a>
+              </div>
+              <hr />
+              <button type="submit" class="btn btn-primary w-100 mt-3">Log In</button>
+              </form>
+        </div>
+          </div>
+{% endblock content %}

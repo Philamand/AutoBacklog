@@ -1,0 +1,90 @@
+{% load static %}
+<!doctype html>
+<html lang="en" {% if theme %}data-bs-theme="{{ theme }}"{% endif %}>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block head_title %}{% endblock head_title %}</title>
+    {% block extra_head %}{% endblock extra_head %}
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'assets/favicon/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'assets/favicon/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'assets/favicon/favicon-16x16.png' %}">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="{% static 'assets/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'assets/bootstrap-icons.min.css' %}">
+    <script src="{% static 'assets/htmx.min.js' %}"></script>
+    <script defer src="https://data.autobacklog.com/script.js" data-website-id="feefaa03-7935-4467-961f-8c697a1f60b7"></script>
+    <style>
+      body {
+        font-family: 'Roboto';
+      }
+    </style>
+  </head>
+  <body class="d-flex flex-column min-vh-100">
+    
+
+<nav class="navbar sticky-top navbar-expand-lg bg-body-tertiary">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'dashboard' %}"><img src="{% static 'assets/favicon/favicon-32x32.png' %}" class="me-2" alt="Icon" />AutoBacklog</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav ms-auto">
+        {% if user.is_authenticated %}
+        <a class="nav-link" href="{% url 'feedback_add' %}"><i class="bi bi-chat-left-dots me-1"></i>Feedback</a>
+        <a class="nav-link" href="{% url 'settings' %}"><i class="bi bi-gear me-1"></i>Settings</a>
+        <form id="logout-form" method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="nav-link" type="submit"><i class="bi bi-box-arrow-right me-1"></i>Log Out</button>
+        </form>
+        {% else %}
+          <a class="nav-link" href="{% url 'about' %}"><i class="bi bi-question-circle me-1"></i>About</a>
+          <a class="nav-link" href="{% url 'account_login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>Log In</a>
+          <a class="nav-link" href="{% url 'account_signup' %}"><i class="bi bi-door-open me-1"></i>Sign Up</a>
+        {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+   
+  
+    <main class="mt-4 mb-4">
+        {% block body %}
+        <div class="row w-100 h-100 align-items-center justify-content-center mx-auto">
+          <div class="col-11 col-md-6 bg-body-secondary border rounded p-4">
+            {% block content %}
+            {% endblock content %}
+          </div>
+          </div>
+        {% endblock body %}
+        {% block extra_body %}
+        {% endblock extra_body %}
+    </main>
+
+    <footer class="footer mt-auto bg-body-tertiary pt-5 pb-4">
+    <div class="container">
+      <p class="text-center fs-6 text-danger-emphasis">Early access version – thank you for testing!</p>
+      <p class="text-center">We use only essential cookies to operate the app. By using this site, you agree to our <a class="nav-link" href="{% url 'privacy' %}">Privacy Policy.</a></p>
+      <nav class="nav justify-content-center">
+        <a class="nav-link" href="{% url 'about' %}">About</a>
+        <a class="nav-link" href="{% url 'privacy' %}">Privacy Policy</a>
+      </nav>
+    </div>
+    </footer>
+
+    <script src="{% static 'assets/bootstrap.bundle.min.js' %}"></script>
+    {% if not theme %}
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-bs-theme', "dark")
+        }
+    </script>
+    {% endif %}
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

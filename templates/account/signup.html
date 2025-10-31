@@ -1,0 +1,40 @@
+{% extends "account/base_entrance.html" %}
+{% load allauth i18n %}
+{% block head_title %}
+    {% trans "Signup" %}
+{% endblock head_title %}
+{% block content %}
+    <div class="mb-3 w-100 d-flex justify-content-center">
+              <h2>Sign Up</h2>
+            </div>
+            <hr />
+              {% include 'registration/social_buttons.html' %}
+            <hr />
+            <form method="post" action="{% url 'account_signup' %}">
+            {% csrf_token %}
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control {% if 'email' in form.errors %}is-invalid{% endif %}" id="email" name="email" required />
+                {% for error in form.errors.email %}
+                  <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="mb-3">
+                <label for="password1" class="form-label">Password</label>
+                <input type="password" class="form-control {% if 'password1' in form.errors %}is-invalid{% endif %}" id="password1" name="password1" required />
+                {% for error in form.errors.password1 %}
+                  <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="mb-3">
+                <label for="password2" class="form-label">Validate Password</label>
+                <input type="password" class="form-control {% if 'password2' in form.errors %}is-invalid{% endif %}" id="password2" name="password2" required />
+                {% for error in form.errors.password2 %}
+                  <div class="invalid-feedback">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <hr />
+              <button type="submit" class="btn btn-primary w-100 mt-3">Sign Up</button>
+          </div>
+          </form>
+{% endblock content %}
