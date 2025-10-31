@@ -1,0 +1,6 @@
+<form action="{% url 'reddit_login' %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn w-100 my-3 text-center" style="background-color: #D93900;">
+        <i class="bi bi-reddit float-start"></i>Continue with Reddit
+    </button>
+</form>

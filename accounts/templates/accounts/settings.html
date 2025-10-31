@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+
+<div class="container">  
+{% if not token_is_valid %}
+      <p>Error: Your NPSSO is not valid.</p>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="npsso" class="form-label"><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#NpssoModal">Npsso<i class="bi bi-question-circle ms-2"></i></button></label>
+          <input type="text" class="form-control" id="npsso" aria-describedby="npssoHelp" name="npsso" value="{{ npsso }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+  
+<hr />
+<div class="form-check form-switch">
+    <input class="form-check-input" type="checkbox" value="" id="checkNativeSwitch" name="darkMode" switch onclick="toggle_theme()">
+    <label class="form-check-label" for="checkNativeSwitch">
+      Dark Mode
+    </label>
+  </div>
+
+  <div class="modal fade" id="NpssoModal" tabindex="-1" aria-labelledby="NpssoModalTitle" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="NpssoModalTitle">How to get your NPSSO ?</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>In your web browser, access <a href="https://store.playstation.com" target="_blank">https://store.playstation.com <i class="bi bi-box-arrow-up-right"></i></a> and log in with your PSN account.</li>
+          <li>In the same browser, access <a href="https://ca.account.sony.com/api/v1/ssocookie" target="_blank">https://ca.account.sony.com/api/v1/ssocookie <i class="bi bi-box-arrow-up-right"></i></a></li>
+          <li>You should see a response with npsso followed by a string of letters and numbers. Highlight and copy this (without the "").</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let theme = "light"
+    {% if not theme or theme == 'dark' %}
+    if ('{{ theme }}' === 'dark' || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.getElementById("checkNativeSwitch").checked = true
+            theme = "dark"
+        }
+    {% endif %}
+    async function toggle_theme() {
+        if (theme === "light") theme = "dark"
+        else theme = "light"
+        document.documentElement.setAttribute('data-bs-theme', theme)
+        const response = await fetch("{% url 'toggle_theme' %}",
+           {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ theme: theme })
+        }
+        )
+    }
+</script>
+{% endblock %}
