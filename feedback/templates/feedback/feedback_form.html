@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Feedback
+{% endblock %}
+
+{% block content %}
+<div class="container">  
+<form action="/feedback/" method="post">
+    {% csrf_token %}
+    <label for="id_type" class="form_label">Feedback</label>
+    <select class="form-select mt-2" aria-label="Feedback Type" name="type" id="id_type">
+        <option selected value="fdk">General Feedback</option>
+        <option value="bug">Bug Report</option>
+        <option value="fea">Feature Request</option>
+    </select>
+
+    <label for="id_message" class="form-label mt-3">Message</label>
+    <textarea id="id_message" class="form-control" name="message" required></textarea>
+    <button type="submit" class="btn btn-primary mt-2">Submit</button>
+</form>
+</div>
+{% endblock %}
