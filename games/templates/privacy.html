@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Privacy Policy</h1>
+    <div>
+        <p>Last Updated: 01-01-2025</p>
+        <h3>1. Data We Collect</h3>
+        <p>We only collect what's necessary to operate the app:</p>
+        <ul>
+            <li><strong>Account Information: </strong>Email address.</li>
+            <li><strong>PlayStation Data: </strong>NPSSO token (to fetch your game library and trophies via Sony's API).</li>
+            <li><strong>Game Library: </strong>Titles in your library and their related status (bought, played, finished...).</li>
+            <li><strong>Session Cookies: </strong>Essential for app functionality (no tracking).</li>
+        </ul>
+        <h3 class="mt-4">2. How We Use Your Data</h3>
+        <ul>
+            <li><strong>To provide the service: </strong>Display your backlog, trophy progress and shelving status.</li>
+            <li><strong>To improve the app: </strong>Anonymized usage stats via <a href="https://umami.is/" target="_blank">Umami Analytics <i class="bi bi-box-arrow-up-right"></i></a> (hosted on our server in France, no cookies are used).</li>
+            <li><strong>To communicate: </strong>Critical app updates.</li>
+        </ul>
+        <h3 class="mt-4">3. Data Sharing & Storage</h3>
+        <ul>
+            <li><strong>Never sold or shared </strong> with third parties.</li>
+            <li><strong>Stored securely </strong>on our server in France.</li>
+        </ul>
+        <h3 class="mt-4">4. Your Rights</h3>
+        <ul>
+            <li><strong>Delete your data: </strong>by emailing us.</li>
+            <li><strong>Export your data: </strong>request a copy of your data by emailing us.</li>
+            <li><strong>Revoke access: </strong>Disconnect your NPSSO token any time from the settings or by emailing us.</li>
+        </ul>
+        <h3 class="mt-4">5. Cookies</h3>
+        <p>We only use <strong>strictly necesarry session cookies</strong>. We don't use any tracking/advertising cookies.</p>
+        <h3 class="mt-4">6. Changes to This Policy</h3>
+        <p>Updates will be posted here. Continued use means you accept them.</p>
+    </div>
+</div>
+{% endblock %}

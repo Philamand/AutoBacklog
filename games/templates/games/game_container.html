@@ -1,0 +1,36 @@
+{% if htmx %}
+<div id="game_length" hx-swap-oob="true">{{ paginator.count }}</div>
+
+<button type="button" class="btn" id="sortButton" hx-swap-oob="true">
+    <i class="bi {% if sort == 'name'%}bi-sort-alpha-down{% elif sort == '-name' %}bi-sort-alpha-up{% else %}bi-sort-down{% endif %} fs-3"
+        data-bs-toggle="modal" data-bs-target="#sortModal"></i>
+</button>
+{% endif %}
+
+{% if not games %}
+<p>You don't have any games yet.</p>
+{% endif %}
+{% if page_obj.has_next %}
+<div hx-get="/games/{% if shelf %}shelf/{% elif edit %}edit/{% endif %}?page={{ page_obj.next_page_number }}" hx-target="#{% if edit %}edit-form{% else %}game-container{% endif %}" hx-swap="beforeend"
+    hx-trigger="intersect once"></div>
+{% endif %}
+{% if edit and not htmx %}
+<form method="post" action="/games/bulk_edit/" id="edit-form">
+    {% csrf_token %}
+      <div class="w-100 d-flex">
+        Action:
+      <select class="form-select mx-2" aria-label="Select action" name="action">
+        <option selected value="">---------</option>
+        <option value="shelf">Shelf</option>
+        <option value="delete">Delete</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Go</button>
+      </div>
+{% endif %}
+{% for game in games %}
+{% include 'games/components/game_card.html' %}
+{% endfor %}
+
+{% if edit and not htmx %}
+</form>
+{% endif %}

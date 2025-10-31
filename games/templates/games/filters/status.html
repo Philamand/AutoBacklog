@@ -1,0 +1,14 @@
+<div id="filtersStatus" class="mb-2">
+    <div class="d-flex justify-content-between">
+        <h5 class="mb-0">Status</h5>
+        <button type="button" class="btn" hx-post="/games/filters/reset/" hx-target="#filtersStatus" hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-vals='{"reset": "status"}'><i class="bi bi-arrow-clockwise"></i></button>
+    </div>
+  <input type="checkbox" class="btn-check" id="statusUnp" name="unp" value="true" autocomplete="off" {% if "unp" in filters.status %}checked{% endif %}>
+  <label class="btn" for="statusUnp">Unplayed</label>
+  <input type="checkbox" class="btn-check" id="statusUnf" name="unf" value="true" autocomplete="off" {% if "unf" in filters.status %}checked{% endif %}>
+  <label class="btn" for="statusUnf">Unfinished</label>
+  <input type="checkbox" class="btn-check" id="statusBea" name="bea" value="true" autocomplete="off" {% if "bea" in filters.status %}checked{% endif %}>
+  <label class="btn" for="statusBea">Beaten</label>
+  <input type="checkbox" class="btn-check" id="statusCom" name="com" value="true" autocomplete="off" {% if "com" in filters.status %}checked{% endif %}>
+  <label class="btn" for="statusCom">Completed</label>
+</div>

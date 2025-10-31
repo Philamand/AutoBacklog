@@ -1,0 +1,12 @@
+<div class="mb-2" id="filtersOwnership">
+    <div class="d-flex justify-content-between">
+        <h5 class="mb-0">Ownership</h5>
+        <button type="button" class="btn" hx-post="/games/filters/reset/" hx-target="#filtersOwnership" hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-vals='{"reset": "ownership"}'><i class="bi bi-arrow-clockwise"></i></button>
+    </div>
+    <input type="checkbox" class="btn-check" id="ownershipOwn" name="own" value="true" autocomplete="off" {% if "own" in filters.ownership %}checked{% endif %}>
+    <label class="btn" for="ownershipOwn">Owned</label>
+    <input type="checkbox" class="btn-check" id="ownershipSub" name="psp" value="true" autocomplete="off" {% if "psp" in filters.ownership %}checked{% endif %}>
+    <label class="btn" for="ownershipSub">PS+</label>
+    <input type="checkbox" class="btn-check" id="ownershipCatalog" name="pgc" value="true" autocomplete="off" {% if "pgc" in filters.ownership %}checked{% endif %}>
+    <label class="btn" for="ownershipCatalog">Game Catalog</label>
+  </div>

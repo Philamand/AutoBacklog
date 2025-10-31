@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if shelf %}
+  Shelf
+{% else %}
+  Library
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">  
+{% if shelf %}
+{% include 'games/components/nav_tabs.html' with tab_page='shelf' %}
+{% else %}
+{% include 'games/components/nav_tabs.html' with tab_page='library' %}
+{% endif %}
+<div class="border-start border-end border-bottom p-2">
+  {% if user.account.loading_data %}
+    {% include 'games/components/loading_data.html' %}
+  {% else %}
+  <div class="d-flex justify-content-between">
+    <p>Games</p>
+    <div id="game_length">{{ paginator.count }}</div>
+  </div>
+  <div class="row">
+    {% if not shelf %}
+    <div class="col d-flex justify-content-start align-items-center">
+      {% if not edit %}
+        <a href="/games/edit/" class="btn"><i class="bi bi-check-square fs-5"></i></a>
+      {% else %}
+        <a href="/games/" class="btn"><i class="bi bi-x-square fs-5"></i></a>
+      {% endif %}
+      <button type="button" class="btn" hx-get="{% url 'refresh_game_list' %}" hx-target="#game-container"><i class="bi bi-arrow-clockwise fs-4"></i></button>
+    </div>
+    {% else %}
+    <div></div>
+    {% endif %}
+    <div class="col d-flex justify-content-end align-items-center">
+      <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="bi bi-search fs-5"></i></button>
+      <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#filtersModal"><i class="bi bi-filter fs-3"></i></button>
+      <button type="button" class="btn" id="sortButton"  hx-swap-oob="true">
+        <i class="bi {% if sort == 'name'%}bi-sort-alpha-down{% elif sort == '-name' %}bi-sort-alpha-up{% else %}bi-sort-down{% endif %} fs-3" data-bs-toggle="modal" data-bs-target="#sortModal"></i>
+      </button>
+    </div>
+  </div>
+  <div id="game-container">
+    {% include "games/game_container.html" %}
+  </div>
+
+  <div class="modal fade" id="filtersModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    {% include "games/filters/main.html" %}
+  </div>
+
+  <div class="modal fade" id="sortModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Sort</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="sortForm" hx-get="/games/{% if shelf %}shelf/{% endif %}" hx-target="#game-container" hx-on::after-on-load="trackFormClick()">
+            <div class="form-check form-check-reverse">
+              <input class="form-check-input" type="radio" name="sort" value="bought" id="radioBought" {% if sort == 'bought' %}checked{% endif %}>
+              <label class="form-check-label" for="radioBought">
+                Recently Bought
+              </label>
+            </div>
+            <div class="form-check form-check-reverse">
+              <input class="form-check-input" type="radio" name="sort" value="recent" id="radioRecent" {% if sort == 'recent' %}checked{% endif %}>
+              <label class="form-check-label" for="radioRecent">
+                Recently Played
+              </label>
+            </div>
+            <div class="form-check form-check-reverse">
+              <input class="form-check-input" type="radio" name="sort" value="name" id="radioName" {% if sort == 'name' %}checked{% endif %}>
+              <label class="form-check-label" for="radioName">
+                Name (A - Z)
+              </label>
+            </div>
+            <div class="form-check form-check-reverse">
+              <input class="form-check-input" type="radio" name="sort" value="-name" id="radioName-" {% if sort == '-name' %}checked{% endif %}>
+              <label class="form-check-label" for="radioName-">
+                Name (Z - A)
+              </label>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button id="sortFilter" type="submit" form="sortForm" class="btn btn-primary" data-bs-dismiss="modal">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Search</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="searchForm" hx-get="/games/{% if shelf %}shelf/{% endif %}" hx-target="#game-container">
+            <input type="text" name="search" class="form-control" id="inputSearch">
+          </form>
+        </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <button type="button" class="btn btn-secondary" hx-get="/games/{% if shelf %}shelf/{% endif %}" hx-target="#game-container" hx-swap="innerHTML" hx-on:htmx:after-on-load="document.getElementById('inputSearch').value=''">Reset</button>
+          <button type="submit" form="searchForm" class="btn btn-primary" data-bs-dismiss="modal">Search</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  </div>
+  {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function trackFormClick() {
+  const selectedValue = document.querySelector('input[name="sort"]:checked').value
+  umami.track('sort-changed', { value: selectedValue })
+}
+</script>
+
+{% endblock %}

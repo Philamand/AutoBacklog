@@ -1,0 +1,10 @@
+<div class="mb-2" id="filtersPlatforms">
+    <div class="d-flex justify-content-between">
+        <h5 class="mb-0">Platforms</h5>
+        <button type="button" class="btn" hx-post="/games/filters/reset/" hx-target="#filtersPlatforms" hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-vals='{"reset": "platforms"}'><i class="bi bi-arrow-clockwise"></i></button>
+    </div>
+    <input type="checkbox" class="btn-check" id="platformPS4" name="ps4" value="true" autocomplete="off" {% if filters.platform != "ps5" and filters.platform != "ps5o" %}checked{% endif %}>
+    <label class="btn" for="platformPS4">PS4</label>
+    <input type="checkbox" class="btn-check" id="platformPS5" name="ps5" value="true" autocomplete="off" {% if filters.platform != "ps4" and filters.platform != "ps4o" %}checked{% endif %}>
+    <label class="btn" for="platformPS4">PS5</label>
+  </div>

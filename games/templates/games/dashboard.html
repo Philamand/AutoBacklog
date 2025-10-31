@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load game_extras %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">  
+{% include 'games/components/nav_tabs.html' with tab_page='dashboard' %}
+<div class="border-start border-end border-bottom p-2">
+    <div>
+        <h3 class="ms-2">Last Played</h3>
+        <hr />
+        {% for game in games %}
+        {% include 'games/components/game_card.html' %}
+    {% endfor %}
+    </div>
+    <div class="mt-4">
+        <h3 class="ms-2">Statistics</h3>
+        <hr />
+        <div id="chart" class="w-100"></div>
+        <!--<div id="activeChart" class="w-100"></div>
+        <div class="row">
+            <div id="chart" class="col-12 col-md-6"></div>
+            <div id="consoleChart" class="col-12 col-md-6"></div>
+        </div>-->
+        
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    let options = {
+            series: [{{ count.unp }}, {{ count.unf }}, {{ count.bea }}, {{ count.com }}],
+            labels: ['Unplayed', 'Unfinished', 'Beaten', 'Completed'],
+            colors: ['#343a40', '#0d6efd', '#198754', '#0dcaf0'],
+            chart: {
+            type: 'donut',
+            height: 350
+            },
+            legend: {
+                    show: false
+                },
+            plotOptions: {
+                pie: {
+                    donut: {
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true
+                            }
+                        }
+                    }
+                }
+            }
+            };
+          /*
+        let consoleOptions = {
+          series: [{
+          data: [{
+            x: 'Total',
+            y: {{count.total}}
+        },
+        {
+            x: 'PlayStation 4',
+            y: {{count.ps4}}
+        },
+        {
+            x: 'PlayStation 5',
+            y: {{count.ps5}}
+        },]
+        }],
+          colors: ['#0d6efd'],
+          chart: {
+          type: 'bar',
+          height: 350,
+          toolbar: {
+            show: false
+          }
+        },
+        plotOptions: {
+          bar: {
+            borderRadius: 4,
+            borderRadiusApplication: 'end',
+            horizontal: true,
+          }
+        },
+        dataLabels: {
+          enabled: false
+        }
+        };
+        
+        let activeOptions = {
+          series: [{
+          name: 'Active',
+          data: [{{count.unp}} + {{count.unf}}]
+        }, {
+          name: 'Inactive',
+          data: [{{count.bea}} + {{count.com}} + {{count.she}}]
+        }],
+        colors: ['#0d6efd', '#343a40'],
+          chart: {
+          type: 'bar',
+          height: 150,
+          stacked: true,
+          stackType: '100%',
+          toolbar: {
+            show: false
+          }
+        },
+        plotOptions: {
+          bar: {
+            horizontal: true,
+          },
+        },
+        stroke: {
+          width: 1,
+          colors: ['#fff']
+        },
+        fill: {
+          opacity: 1
+        
+        },
+        legend: {
+          position: 'top',
+        }
+        };
+        */
+            let chart = new ApexCharts(document.querySelector("#chart"), options);
+            /*let consoleChart = new ApexCharts(document.querySelector("#consoleChart"), consoleOptions);
+            let activeChart = new ApexCharts(document.querySelector("#activeChart"), activeOptions);*/
+            chart.render();
+            /*consoleChart.render()
+            activeChart.render()*/
+    </script>
+{% endblock %}

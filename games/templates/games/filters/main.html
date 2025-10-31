@@ -1,0 +1,23 @@
+<div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Filters</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="filtersForm" hx-get="/games/{% if shelf %}shelf/{% endif %}" hx-target="#game-container">
+          {% include "games/filters/status.html" %}
+          
+          {% include "games/filters/platforms.html" %}
+
+          {% include "games/filters/ownership.html" %}
+
+          {% include "games/filters/active.html" %}
+        </form>
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary" hx-post="/games/filters/reset/" hx-target="#filtersModal" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>Reset</button>
+        <button type="submit" form="filtersForm" class="btn btn-primary" data-bs-dismiss="modal">Apply</button>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+<div class="container pb-5">
+    <h1>About AutoBacklog</h1>
+    <div>
+        <p>
+            AutoBacklog is a backlog service that let you connect your PlayStation Network account to automatically import your library and tag them accordingly: bought, played, finished, platinumed.<br /><br />
+            I built AutoBacklog after subscribing to PlayStation+ Premium: my library became a mess ! Impossible to know what games I finished, abandonned, downloaded but never opened or even to differenciate between games I bought, games I got as a monthly game and games from the game catalog.
+        </p>
+    </div>
+</div>
+<div class="w-100 bg-danger-subtle py-5">
+    <div class="container">
+        <h2>Alpha Notice</h2>
+        <p>The service is still in it's very early stage, so you should expect bugs and missing features. If you wish to report a bug or request a feature, please use the "Feedback" page (need to be logged in) or send an email to the address below.<br />
+            Your feedback is really important, as it will shape the future of AutoBacklog.</p>
+    </div>
+</div>
+<div class="container py-5">
+    <h2>Contact</h2>
+    <p>Questions? Suggestion? Let's talk!</p>
+    <a href="mailto:contact@autobacklog.com">contact@autobacklog.com</a>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div id="header-background-image" class="position-absolute top-0 start-0 w-100 h-100 opacity-50" style="background-image: url('{% static "assets/images/autoBacklogScreenshotLight.webp" %}'); background-repeat: no-repeat; background-position: center;"></div>
+<div class="position-absolute top-0 start-0 w-100 h-100" style="-webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);"></div>
+<!--<div class="w-50">
+    <img class="w-100" src="{% static 'assets/images/autoBacklogScreenshot.png' %}" alt="AutoBacklog Screenshot" />
+</div>-->
+<div class="position-absolute top-0 start-0 h-100 w-100">
+    <div class="row align-content-center justify-content-center h-100 w-100 mx-auto">
+        <div class="col-11 col-md-6 bg-body-secondary border rounded shadow z-0 p-4 text-center">
+            <h2>Never Lose Track of Your PlayStation Games Again</h2>
+            <p class="mt-2">Automatically import your PSN library and see what you've bought, played, finished, or platinumed. All in one place.</p>
+        </div>
+    </div>
+</div>
+<div class="vh-100"></div>
+<div class="py-5 bg-body-secondary">
+    <div class="container row mx-auto">
+      {% include 'components/feature.html' with icon='lock' title='NPSSO-Powered Import' content="Securely connect via Sony's official login (no password sharing)." only %}
+      {% include 'components/feature.html' with icon='trash' title='Declutter with Shelving' content="Shelf games you'll never play, keep your backlog focused." only %}
+      {% include 'components/feature.html' with icon='bar-chart' title='Completion Dashboard' content="Instant visual stats: Unplayed - Unfinished - Finished - Completed." only %}
+      {% include 'components/feature.html' with icon='funnel' title='Smart filters' content="Filter games by status: Owned - PS+ - Game Catalog - Unplayed and more." only %}
+    </div>
+</div>
+
+<div class="py-5">
+    <div class="row gx-md-5 container mx-auto align-items-center">
+    <div class="col-12 col-md-6">
+      <video class="w-100" controls>
+        <source src="{% static 'assets/videos/getnpsso.webm' %}" type="video/webm" />
+        <source src="{% static 'assets/videos/getnpsso.mp4' %}" type="video/mp4" />
+      </video>
+    </div>
+    <div class="col-12 col-md-6 mt-4 mt-md-0">
+        <div>
+            <h5>1. Get NPSSO</h5>
+            <p>30-second process from Sony's website</p>
+        </div>
+
+        <div>
+            <h5>2. Paste in Our App</h5>
+            <p>We handle the rest</p>
+        </div>
+
+        <div>
+            <h5>3. Scan & Organize</h5>
+            <p>Click 'Update' whenever you want fresh data</p>
+        </div>
+    </div>
+    </div>
+</div>
+
+<div class="py-5 bg-body-secondary">
+    <div class="container mx-auto">
+        <h4 class="text-center mb-3">FAQ</h4>
+
+
+<div class="accordion" id="accordionFaq">
+  {% include "components/accordion_item.html" with parent="accordionFaq" id="One" header="Why NPSSO instead of PSN login?" body="Sony's API rules require it, we'll show you exactly how to get yours safely." expanded="true" only %}
+  {% include "components/accordion_item.html" with parent="accordionFaq" id="Two" header="Can I hide PS+ games I don't care about?" body="Yes! Shelf them and they'll vanish from your main view." only %}
+  {% include "components/accordion_item.html" with parent="accordionFaq" id="Four" header="What if I already use a service that use my NPSSO?" body="You need to reuse the same NPSSO on all your services, Otherwise only the last one you used will remain active." only %}
+</div>
+</div>
+</div>
+
+<div class="py-5">
+    <div class="container mx-auto row">
+        <div class="col-12 col-md-6 fs-3 text-center text-md-start">
+            Ready to organize your PSN library?
+        </div>
+        <div class="d-flex col-12 col-md-6 justify-content-md-end justify-content-center align-items-center mt-4 mt-md-0">
+            <a href="{% url 'account_signup' %}" class="btn btn-primary fs-4">Try the Alpha</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const header_background_image = document.getElementById("header-background-image")
+    let theme = document.documentElement.getAttribute("data-bs-theme")
+    if (theme === "dark") header_background_image.style.backgroundImage = `url('{% static "assets/images/autoBacklogScreenshot.webp" %}')`
+</script>
+{% endblock %}

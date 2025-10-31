@@ -1,0 +1,12 @@
+<div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button {% if not expanded %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ id }}" aria-expanded="{{ expanded|default:'false' }}" aria-controls="collapse{{ id }}">
+        {{ header }}
+      </button>
+    </h2>
+    <div id="collapse{{ id }}" class="accordion-collapse collapse {% if expanded %}show{% endif %}" data-bs-parent="#{{ parent }}">
+      <div class="accordion-body text-secondary-emphasis">
+        {{ body }}
+    </div>
+</div>
+</div>

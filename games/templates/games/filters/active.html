@@ -1,0 +1,10 @@
+<div class="mb-2" id="filtersActive">
+    <div class="d-flex justify-content-between">
+        <h5 class="mb-0">Active</h5>
+        <button type="button" class="btn" hx-post="/games/filters/reset/" hx-target="#filtersActive" hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-vals='{"reset": "active"}'><i class="bi bi-arrow-clockwise"></i></button>
+    </div>
+    <input type="checkbox" class="btn-check" id="active" name="active" value="true" autocomplete="off" {% if filters.active != "inactive" %}checked{% endif %}>
+    <label class="btn" for="active">Active</label>
+    <input type="checkbox" class="btn-check" id="inactive" name="inactive" value="true" autocomplete="off" {% if filters.active != "active" %}checked{% endif %}>
+    <label class="btn" for="inactive">Inactive</label>
+  </div>
