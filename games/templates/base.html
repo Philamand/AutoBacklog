@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link href="{% static 'assets/bootstrap.min.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'assets/bootstrap-icons.min.css' %}">
-    <script src="{% static 'assets/htmx.min.js' %}"></script>
+    <link href="{% static 'assets/libraries/bootstrap.min.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'assets/libraries/bootstrap-icons.min.css' %}">
+    <script src="{% static 'assets/libraries/htmx.min.js' %}"></script>
     <script defer src="https://data.autobacklog.com/script.js" data-website-id="c618a771-ed26-4d34-af93-15992e7b8e2b"></script>
     {% load pwa %}
     {% progressive_web_app_meta %}
@@ -68,7 +68,7 @@
     </div>
     </footer>
 
-    <script src="{% static 'assets/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/libraries/bootstrap.bundle.min.js' %}"></script>
     {% if not theme %}
     <script>
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
