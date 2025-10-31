@@ -66,6 +66,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_dramatiq",
     "pwa",
+    "games.apps.GamesConfig",
+    "accounts.apps.AccountsConfig",
+    "feedback.apps.FeedbackConfig",
 ]
 
 MIDDLEWARE = [
