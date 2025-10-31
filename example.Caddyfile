@@ -1,0 +1,23 @@
+data.autobacklog.com {
+        reverse_proxy umami:3000
+}
+
+autobacklog.com, www.autobacklog.com {
+	encode zstd gzip
+	
+	handle_path /static/* {
+        file_server {
+                root "/app/staticfiles"
+                precompressed br gzip
+        }
+    }
+
+	handle {
+		reverse_proxy autobacklog:8000 {
+			header_up Host {host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwaded-For {remote}
+			header_up X-Real-IP {remote}
+		}
+	}
+}
