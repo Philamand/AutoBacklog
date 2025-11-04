@@ -2,8 +2,8 @@ import dramatiq
 import httpx
 import asyncio
 import os
-import time
 from cryptography.fernet import Fernet
+from asgiref.sync import sync_to_async
 from asyncio import Semaphore
 from pydantic import BaseModel
 from datetime import datetime, timedelta
@@ -11,7 +11,8 @@ from psnawp_api import PSNAWP
 from psnawp_api.core.psnawp_exceptions import PSNAWPAuthenticationError
 from django.contrib.auth.models import User
 from django.utils import timezone
-from .models import Game, GameTrophy, TitleId
+from .models import Game, GameTrophy, TitleId, PlayStationTitle
+from psn_account.models import PsnAccount
 
 
 class Trophy(BaseModel):
@@ -165,6 +166,7 @@ class TitleStats(BaseModel):
     name: str | None = None
     playCount: int | None = None
     playDuration: timedelta | None = None
+    service: str | None = None
     titleId: str | None = None
 
 
@@ -215,7 +217,9 @@ async def make_psn_request(url: str, access_token: str):
         return response.json()
 
 
-async def get_title_stats(access_token: str, last_played: datetime) -> list[TitleStats]:
+async def get_title_stats(
+    access_token: str, account_id: str, last_played: datetime | None = None
+) -> list[TitleStats]:
     """
     Asynchronously retrieves title statistics from the PlayStation Network API.
 
@@ -229,7 +233,7 @@ async def get_title_stats(access_token: str, last_played: datetime) -> list[Titl
     offset = 0
     while offset is not None:
         response = await make_psn_request(
-            f"https://m.np.playstation.com/api/gamelist/v2/users/me/titles?limit=100&offset={str(offset)}",
+            f"https://m.np.playstation.com/api/gamelist/v2/users/{account_id}/titles?limit=100&offset={str(offset)}",
             access_token,
         )
         titleStatsResults = TitleStatsResult(**response)
@@ -312,55 +316,75 @@ async def get_entitlements(
 
 
 @dramatiq.actor
-async def load_trophy(titleId: int, user_id: int) -> None:
-    f = Fernet(
-        os.getenv("FERNET_KEY").encode()  # type: ignore
-    )
+async def load_trophy(titleId: str, conceptId: int, user_id: int) -> None:
+    psn_account: PsnAccount | None = None
+
+    while not psn_account:
+        psn_account = await (
+            PsnAccount.objects.filter(ready__lt=timezone.now())
+            .exclude(npsso_is_valid=False)
+            .exclude(available=False)
+            .afirst()
+        )
+        if not psn_account or not psn_account.npsso:
+            await asyncio.sleep(10)
+
+    psn_account.available = False
+    if psn_account.ready < timezone.now():
+        psn_account.ready = timezone.now()
+    await psn_account.asave()
     try:
         user = await User.objects.select_related("account").aget(pk=user_id)
-        access_token = f.decrypt(user.account.access_token).decode()
+        psnawp = PSNAWP(psn_account.npsso)  # type: ignore
+        client = psnawp.me()
+        client.online_id
+        if client.authenticator.token_response:
+            access_token = client.authenticator.token_response["access_token"]
 
-        response = await make_psn_request(
-            f"https://m.np.playstation.com/api/trophy/v1/users/me/titles/trophyTitles?npTitleIds={titleId}&includeNotEarnedTrophyIds=true",
-            access_token,
-        )
-        trophy = TitleResult(**response).titles[0].trophyTitles[0]
-
-        game = await TitleId.objects.select_related("game").aget(
-            owner=user, title_id=titleId
-        )
-        g = game.game.psn_id
-
-        try:
-            gameTrophy = await GameTrophy.objects.aget(psn_id=g)
-        except GameTrophy.DoesNotExist:
-            gameTrophy = None
-            if trophy.npServiceName == "trophy2":
-                trophy_ps5 = trophy.npCommunicationId
-                trophy_ps4 = None
-            else:
-                trophy_ps4 = trophy.npCommunicationId
-                trophy_ps5 = None
-            gameTrophy = GameTrophy(
-                psn_id=g,
-                name=trophy.trophyTitleName,
-                trophy_id=trophy_ps5,
-                trophy_id_ps4=trophy_ps4,
+            response = await make_psn_request(
+                f"https://m.np.playstation.com/api/trophy/v1/users/{user.account.account_id}/titles/trophyTitles?npTitleIds={titleId}&includeNotEarnedTrophyIds=true",
+                access_token,
             )
-            await gameTrophy.asave()
 
-        if trophy.earnedTrophies == trophy.definedTrophies:
-            game.game.status = "com"
-            await game.game.asave()
-        elif (
-            gameTrophy.beaten_id
-            and gameTrophy.beaten_id not in trophy.notEarnedTrophyIds
-        ):
-            game.game.status = "bea"
-            await game.game.asave()
+            psn_account.ready += timedelta(seconds=3)
+
+            trophy = TitleResult(**response).titles[0].trophyTitles[0]
+
+            game = await Game.objects.aget(owner=user, psn_id=conceptId)
+
+            try:
+                gameTrophy = await GameTrophy.objects.aget(psn_id=conceptId)
+            except GameTrophy.DoesNotExist:
+                gameTrophy = None
+                if trophy.npServiceName == "trophy2":
+                    trophy_ps5 = trophy.npCommunicationId
+                    trophy_ps4 = None
+                else:
+                    trophy_ps4 = trophy.npCommunicationId
+                    trophy_ps5 = None
+                gameTrophy = GameTrophy(
+                    psn_id=conceptId,
+                    name=trophy.trophyTitleName,
+                    trophy_id=trophy_ps5,
+                    trophy_id_ps4=trophy_ps4,
+                )
+                await gameTrophy.asave()
+
+            if trophy.earnedTrophies == trophy.definedTrophies:
+                game.status = "com"
+                await game.asave()
+            elif (
+                gameTrophy.beaten_id
+                and gameTrophy.beaten_id not in trophy.notEarnedTrophyIds
+            ):
+                game.status = "bea"
+                await game.asave()
 
     except Exception as e:
         print(e)
+    finally:
+        psn_account.available = True
+        await psn_account.asave()
 
 
 @dramatiq.actor
@@ -380,200 +404,248 @@ async def load_games(user_id: int) -> None:
     - PSNAWPAuthenticationError: If there is an issue authenticating with the PSNAWP API.
     """
     user = await User.objects.select_related("account").aget(pk=user_id)
-    try:
-        f = Fernet(
-            os.getenv("FERNET_KEY").encode()  # type: ignore
+    psn_account: PsnAccount | None = None
+
+    while not psn_account:
+        psn_account = await (
+            PsnAccount.objects.filter(ready__lt=timezone.now())
+            .exclude(npsso_is_valid=False)
+            .exclude(available=False)
+            .afirst()
         )
-        npsso = f.decrypt(user.account.psn_token).decode()
-        psnawp = PSNAWP(npsso)
+        if not psn_account or not psn_account.npsso:
+            await asyncio.sleep(60)
+
+    psn_account.available = False
+    if psn_account.ready < timezone.now():
+        psn_account.ready = timezone.now()
+    await psn_account.asave()
+
+    try:
+        psnawp = PSNAWP(psn_account.npsso)  # type: ignore
         client = psnawp.me()
         client.online_id
+        update_games = {}
+        create_games = {}
+
         if client.authenticator.token_response:
             access_token = client.authenticator.token_response["access_token"]
-            (
-                (entitlements, titleIds, totalEntitlements),
-                gameStats,
-            ) = await asyncio.gather(
-                get_entitlements(
-                    access_token=access_token,
-                    user=user,
-                    entitlements_offset=user.account.entitlements_offset,
-                ),
-                get_title_stats(
-                    access_token=access_token, last_played=user.account.last_played
-                ),
+            game_stats = await get_title_stats(
+                access_token=access_token, account_id=user.account.account_id
             )
-            titleIdsStats: list[str] = []
-            for game in gameStats:
-                if game.titleId and game.titleId in titleIds.keys():
-                    titleIdsStats.append(game.titleId)
 
-            trophies = await fetch_with_rate_limit(titleIdsStats[:200], access_token)
+            psn_account.ready += timedelta(seconds=(len(game_stats) / 100 + 1) * 3)
 
-            if len(titleIdsStats) > 200:
-                user.account.access_token = f.encrypt(access_token.encode())
-                delay = 900000
-                for titleId in titleIdsStats[200:]:
-                    load_trophy.send_with_options(args=(titleId, user.pk), delay=delay)
-                    delay += 5000
+            game_count = 0
 
-            trophiesData: dict[str, TrophyTitles] = {}
-            for trophy in trophies:
-                if (
-                    not isinstance(trophy, BaseException)
-                    and len(trophy.titles[0].trophyTitles) > 0
-                ):
-                    trophiesData[trophy.titles[0].npTitleId] = trophy.titles[
-                        0
-                    ].trophyTitles[0]
-
-            last_played: datetime | None = None
-            if len(gameStats) > 0:
-                if gameStats[0].lastPlayedDateTime:
-                    last_played = gameStats[0].lastPlayedDateTime
-
-            for game in gameStats:
-                saved_game = None
-                if game.titleId and game.titleId not in titleIds.keys():
-                    try:
-                        title_game = await TitleId.objects.select_related("game").aget(
-                            owner=user, title_id=game.titleId
-                        )
-                        saved_game = title_game.game
-                        if game.titleId:
-                            titleIds[game.titleId] = str(saved_game.psn_id)
-                    except Exception as e:
-                        print(f"{game.name}: {e}")
-                if (
-                    game.titleId
-                    and game.titleId in titleIds.keys()
-                    and (saved_game or (titleIds[game.titleId] in entitlements.keys()))
-                ):
-                    g = titleIds[game.titleId]
-
-                    if (
-                        saved_game
-                        and game.lastPlayedDateTime
-                        and saved_game.last_played == game.lastPlayedDateTime
-                    ):
-                        break
-
-                    completed = False
-                    beaten = False
-
-                    try:
-                        gameTrophy = await GameTrophy.objects.aget(psn_id=g)
-                    except GameTrophy.DoesNotExist:
-                        gameTrophy = None
-                        if game.titleId in trophiesData.keys():
-                            if trophiesData[game.titleId].npServiceName == "trophy2":
-                                trophy_ps5 = trophiesData[
-                                    game.titleId
-                                ].npCommunicationId
-                                trophy_ps4 = None
-                            else:
-                                trophy_ps4 = trophiesData[
-                                    game.titleId
-                                ].npCommunicationId
-                                trophy_ps5 = None
-                            gameTrophy = GameTrophy(
-                                psn_id=g,
-                                name=trophiesData[game.titleId].trophyTitleName,
-                                trophy_id=trophy_ps5,
-                                trophy_id_ps4=trophy_ps4,
+            for game_stat in game_stats:
+                if game_stat.titleId:
+                    playstation_title = await (
+                        PlayStationTitle.objects.filter(title_id=game_stat.titleId)
+                        .exclude(concept_id=None)
+                        .afirst()
+                    )
+                    if playstation_title and playstation_title.concept_id:
+                        print(game_stat.name, game_stat.service)
+                        try:
+                            game = await Game.objects.aget(
+                                owner=user, psn_id=playstation_title.concept_id
                             )
-                            await gameTrophy.asave()
-                    except GameTrophy.MultipleObjectsReturned:
-                        gameTrophy = None
-
-                    if gameTrophy and game.titleId in trophiesData.keys():
-                        if (
-                            trophiesData[game.titleId].earnedTrophies
-                            == trophiesData[game.titleId].definedTrophies
-                        ):
-                            completed = True
-                        elif gameTrophy.beaten_id:
-                            if (
-                                gameTrophy.beaten_id
-                                not in trophiesData[game.titleId].notEarnedTrophyIds
-                            ):
-                                beaten = True
-
-                    if not saved_game:
-                        if completed:
-                            entitlements[g].status = "com"
-                        elif beaten:
-                            entitlements[g].status = "bea"
-                        elif (
-                            entitlements[g].status != "com"
-                            and entitlements[g].status != "bea"
-                        ):
-                            entitlements[g].status = "unf"
-                        entitlement_data = entitlements[g]
-                        if game.firstPlayedDateTime and (
-                            not entitlement_data.first_played
-                            or (
-                                entitlement_data.first_played > game.firstPlayedDateTime
-                            )
-                        ):
-                            entitlements[g].first_played = game.firstPlayedDateTime
-                        if game.lastPlayedDateTime and (
-                            not entitlement_data.last_played
-                            or entitlement_data.last_played < game.lastPlayedDateTime
-                        ):
-                            entitlements[g].last_played = game.lastPlayedDateTime
-                        if game.playDuration:
-                            if entitlement_data.playtime is not None:
-                                entitlements[g].playtime += int(
-                                    game.playDuration.total_seconds() / 60
-                                )  # type: ignore
+                            if game.psn_id in update_games.keys():
+                                update_games[game.psn_id].playtime += int(
+                                    game_stat.playDuration.total_seconds() / 60  # type: ignore
+                                )
+                                if game_stat.service == "ps_plus":
+                                    update_games[game.psn_id].ownership = "psp"
                             else:
-                                entitlements[g].playtime = int(
-                                    game.playDuration.total_seconds() / 60
+                                game.playtime = int(
+                                    game_stat.playDuration.total_seconds() / 60  # type: ignore
+                                )
+                                if not game.first_played or (
+                                    game_stat.firstPlayedDateTime
+                                    and game_stat.firstPlayedDateTime
+                                    > game.first_played
+                                ):
+                                    game.first_played = game_stat.firstPlayedDateTime
+                                if not game.last_played or (
+                                    game_stat.lastPlayedDateTime
+                                    and game_stat.lastPlayedDateTime > game.last_played
+                                ):
+                                    game.last_played = game_stat.lastPlayedDateTime
+                                if game_stat.service == "ps_plus":
+                                    game.ownership = "psp"
+                                update_games[game.psn_id] = game
+                        except Game.DoesNotExist:
+                            service = "own"
+                            if game_stat.service == "ps_plus":
+                                service = "psp"
+                            if playstation_title.concept_id in create_games.keys():
+                                create_games[
+                                    playstation_title.concept_id
+                                ].playtime += int(
+                                    game_stat.playDuration.total_seconds() / 60  # type: ignore
+                                )
+                                if (
+                                    not create_games[
+                                        playstation_title.concept_id
+                                    ].last_played
+                                    or game_stat.firstPlayedDateTime
+                                    < create_games[
+                                        playstation_title.concept_id
+                                    ].first_played
+                                ):
+                                    create_games[
+                                        playstation_title.concept_id
+                                    ].first_played = game_stat.firstPlayedDateTime
+                                if (
+                                    not create_games[
+                                        playstation_title.concept_id
+                                    ].last_played
+                                    or game_stat.lastPlayedDateTime
+                                    > create_games[
+                                        playstation_title.concept_id
+                                    ].last_played
+                                ):
+                                    create_games[
+                                        playstation_title.concept_id
+                                    ].last_played = game_stat.lastPlayedDateTime
+                                if "CUSA" in game_stat.titleId:
+                                    create_games[
+                                        playstation_title.concept_id
+                                    ].ps4 = True
+                                else:
+                                    create_games[
+                                        playstation_title.concept_id
+                                    ].ps5 = True
+                            else:
+                                create_games[playstation_title.concept_id] = Game(
+                                    owner=user,
+                                    title=playstation_title.name,
+                                    psn_id=playstation_title.concept_id,
+                                    ps4="CUSA" in game_stat.titleId,
+                                    ps5="PPSA" in game_stat.titleId,
+                                    status="unf",
+                                    ownership=service,
+                                    first_played=game_stat.firstPlayedDateTime,
+                                    last_played=game_stat.lastPlayedDateTime,
+                                    playtime=int(
+                                        game_stat.playDuration.total_seconds() / 60  # type: ignore
+                                    ),
+                                )
+                        game_count += 1
+                        if game_count < 200 and (
+                            not user.account.last_played
+                            or user.account.last_played < game_stat.lastPlayedDateTime
+                        ):
+                            try:
+                                response = await make_psn_request(
+                                    f"https://m.np.playstation.com/api/trophy/v1/users/{user.account.account_id}/titles/trophyTitles?npTitleIds={game_stat.titleId}&includeNotEarnedTrophyIds=true",
+                                    access_token,
+                                )
+                                psn_account.ready += timedelta(seconds=3)
+                                trophy = (
+                                    TitleResult(**response).titles[0].trophyTitles[0]
                                 )
 
-                    elif (
-                        game.lastPlayedDateTime
-                        and game.lastPlayedDateTime != saved_game.last_played
-                    ):
-                        if (
-                            not saved_game.last_played
-                            or saved_game.last_played < game.lastPlayedDateTime
-                        ):
-                            saved_game.last_played = game.lastPlayedDateTime
+                                try:
+                                    gameTrophy = await GameTrophy.objects.aget(
+                                        psn_id=playstation_title.concept_id
+                                    )
+                                except GameTrophy.DoesNotExist:
+                                    gameTrophy = None
+                                    if trophy.npServiceName == "trophy2":
+                                        trophy_ps5 = trophy.npCommunicationId
+                                        trophy_ps4 = None
+                                    else:
+                                        trophy_ps4 = trophy.npCommunicationId
+                                        trophy_ps5 = None
+                                    gameTrophy = GameTrophy(
+                                        psn_id=playstation_title.concept_id,
+                                        name=trophy.trophyTitleName,
+                                        trophy_id=trophy_ps5,
+                                        trophy_id_ps4=trophy_ps4,
+                                    )
+                                    await gameTrophy.asave()
+                                if trophy.earnedTrophies == trophy.definedTrophies:
+                                    if (
+                                        playstation_title.concept_id
+                                        in create_games.keys()
+                                    ):
+                                        create_games[
+                                            playstation_title.concept_id
+                                        ].status = "com"
+                                    elif (
+                                        playstation_title.concept_id
+                                        in update_games.keys()
+                                    ):
+                                        update_games[
+                                            playstation_title.concept_id
+                                        ].status = "com"
+                                elif (
+                                    gameTrophy.beaten_id
+                                    and gameTrophy.beaten_id
+                                    not in trophy.notEarnedTrophyIds
+                                ):
+                                    if (
+                                        playstation_title.concept_id
+                                        in create_games.keys()
+                                        and create_games[
+                                            playstation_title.concept_id
+                                        ].status
+                                        != "com"
+                                    ):
+                                        create_games[
+                                            playstation_title.concept_id
+                                        ].status = "bea"
+                                    elif (
+                                        playstation_title.concept_id
+                                        in update_games.keys()
+                                        and update_games[
+                                            playstation_title.concept_id
+                                        ].status
+                                        != "com"
+                                    ):
+                                        update_games[
+                                            playstation_title.concept_id
+                                        ].status = "bea"
 
-                        if game.playDuration:
-                            saved_game.playtime = int(
-                                game.playDuration.total_seconds() / 60
+                            except IndexError:
+                                pass
+
+                        elif (
+                            not user.account.last_played
+                            or user.account.last_played < game_stat.lastPlayedDateTime
+                        ):
+                            await sync_to_async(load_trophy.send_with_options)(
+                                args=(
+                                    game_stat.titleId,
+                                    playstation_title.concept_id,
+                                    user.pk,
+                                ),
+                                delay=((game_count - 199) * 5 + 900) * 1000,
                             )
 
-                        if beaten and saved_game.status != "bea":
-                            saved_game.status = "bea"
-                        elif completed and saved_game.status != "com":
-                            saved_game.status = "com"
-
-                        await saved_game.asave()
-
-        entitlements_list = list(entitlements.values())
-        entitlements_list.reverse()
-        await Game.objects.abulk_create(entitlements_list)
-
-        title_objects = []
-        for key, value in titleIds.items():
-            if value in entitlements.keys():
-                title_objects.append(
-                    TitleId(title_id=key, game=entitlements[value], owner=user)
-                )
-
-        await TitleId.objects.abulk_create(title_objects)
-        user.account.last_updated = timezone.now()
-        user.account.entitlements_offset = totalEntitlements
-        if last_played:
-            user.account.last_played = last_played
+        if update_games:
+            await Game.objects.abulk_update(
+                list(update_games.values()),
+                [
+                    "ps4",
+                    "ps5",
+                    "status",
+                    "ownership",
+                    "first_played",
+                    "last_played",
+                    "playtime",
+                ],
+            )
+        if create_games:
+            await Game.objects.abulk_create(list(create_games.values()))
 
     except PSNAWPAuthenticationError:
         user.account.token_is_valid = False
 
     finally:
+        psn_account.available = True
+        await psn_account.asave()
         user.account.loading_data = False
         await user.account.asave()

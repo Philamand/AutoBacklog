@@ -8,6 +8,7 @@ dependencies = [
     "django>=4.2.21",
     "django-allauth[socialaccount]>=65.9.0",
     "django-dramatiq>=0.13.0",
+    "django-import-export>=4.3.13",
     "django-pwa>=2.0.1",
     "dramatiq[redis]>=1.18.0",
     "gunicorn>=23.0.0",

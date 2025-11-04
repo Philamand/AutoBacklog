@@ -66,9 +66,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_dramatiq",
     "pwa",
+    "import_export",
     "games.apps.GamesConfig",
     "accounts.apps.AccountsConfig",
     "feedback.apps.FeedbackConfig",
+    "psn_account.apps.PsnAccountConfig",
 ]
 
 MIDDLEWARE = [
