@@ -326,9 +326,12 @@ async def get_entitlements(
 
 @dramatiq.actor
 async def load_entitlements(entitlement_id: int) -> None:
-    entitlement_upload = await EntitlementsUpload.objects.prefetch_related("user").aget(
-        pk=entitlement_id
-    )
+    entitlement_upload = await EntitlementsUpload.objects.prefetch_related(
+        "user__account"
+    ).aget(pk=entitlement_id)
+
+    if not entitlement_upload.user.account.account_id:
+        return
 
     create_games = {}
     update_games = {}
@@ -550,6 +553,9 @@ async def load_games(user_id: int) -> None:
     - PSNAWPAuthenticationError: If there is an issue authenticating with the PSNAWP API.
     """
     user = await User.objects.select_related("account").aget(pk=user_id)
+    if not user.account.account_id:
+        return
+
     psn_account: PsnAccount | None = None
 
     while not psn_account:
