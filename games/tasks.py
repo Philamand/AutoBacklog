@@ -397,6 +397,15 @@ async def load_entitlements(entitlement_id: int) -> None:
                 elif entitlement.rewardMeta.retentionPolicy == 5:
                     update_games[entitlement.conceptMeta.conceptId].ownership = "pgc"
 
+    async for user_game in Game.objects.filter(owner=entitlement_upload.user):
+        if (
+            user_game.psn_id
+            and user_game.psn_id not in update_games.keys()
+            and user_game.psn_id not in create_games.keys()
+        ):
+            user_game.ownership = "phy"
+            update_games[user_game.psn_id] = user_game
+
     if update_games:
         await Game.objects.abulk_update(
             list(update_games.values()),

@@ -12,6 +12,7 @@ STATUS = [
 
 OWNERSHIPS = [
     ("own", "Own"),
+    ("phy", "Physical"),
     ("wis", "Wishlist"),
     ("psp", "PS+"),
     ("pgc", "Game Catalog"),

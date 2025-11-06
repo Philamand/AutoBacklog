@@ -111,7 +111,7 @@ def reset_filters(request: HttpRequest) -> HttpResponse:
         {
             "status": ["unp", "unf", "bea", "com"],
             "platform": "all",
-            "ownership": ["own", "psp", "pgc"],
+            "ownership": ["own", "phy", "psp", "pgc"],
             "active": "all",
         },
     )
@@ -125,7 +125,7 @@ def reset_filters(request: HttpRequest) -> HttpResponse:
         request.session["filters"] = filters
         return render(request, "games/filters/platforms.html", {"filters": filters})
     elif reset == "ownership":
-        filters["ownership"] = ["own", "psp", "pgc"]
+        filters["ownership"] = ["own", "phy", "psp", "pgc"]
         request.session["filters"] = filters
         return render(request, "games/filters/ownership.html", {"filters": filters})
     elif reset == "active":
@@ -246,7 +246,7 @@ class LibraryView(LoginRequiredMixin, ListView):
             {
                 "status": ["unp", "unf", "bea", "com"],
                 "platform": "all",
-                "ownership": ["own", "psp", "pgc"],
+                "ownership": ["own", "phy", "psp", "pgc"],
                 "active": "all",
             },
         )
@@ -281,6 +281,8 @@ class LibraryView(LoginRequiredMixin, ListView):
         own = []
         if self.request.GET.get("own"):
             own.append("own")
+        if self.request.GET.get("phy"):
+            own.append("phy")
         if self.request.GET.get("psp"):
             own.append("psp")
         if self.request.GET.get("pgc"):
