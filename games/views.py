@@ -1,5 +1,7 @@
 from typing import Any
 from django.http import HttpRequest, HttpResponse, QueryDict
+from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -180,11 +182,16 @@ def update_status(request: HttpRequest) -> HttpResponse:
         HttpResponse: The HTTP response object.
     """
     response = HttpResponse()
-    if request.user.account.loading_data:
+    user = User.objects.prefetch_related("account").get(pk=request.user.id)
+    if user.account.loading_data:
         response.status_code = 200
         return response
 
-    if not request.user.account.npsso_is_valid:
+    if not user.account.account_id:
+        messages.error(
+            request,
+            "PlayStation account not found. Please make sure that your account is public.",
+        )
         response["HX-Redirect"] = "/accounts/settings/"
     else:
         response["HX-Redirect"] = "/games/"

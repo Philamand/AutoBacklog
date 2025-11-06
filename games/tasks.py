@@ -554,6 +554,8 @@ async def load_games(user_id: int) -> None:
     """
     user = await User.objects.select_related("account").aget(pk=user_id)
     if not user.account.account_id:
+        user.account.loading_data = False
+        await user.account.asave()
         return
 
     psn_account: PsnAccount | None = None

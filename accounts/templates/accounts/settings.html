@@ -5,6 +5,11 @@
 {% block content %}
 
 <div class="container">
+  {% for message in messages %}
+        <div class="alert alert-danger" role="alert">
+          {{ message }}
+        </div>
+      {% endfor %}
   <form class="mb-3" method="post">
         {% csrf_token %}
         <div class="mb-3">
@@ -14,9 +19,6 @@
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
 <hr />
-{% if not token_is_valid %}
-      <p>Error: Your NPSSO is invalid or has expired.</p>
-      {% endif %}
       <form class="mb-3" method="post">
         {% csrf_token %}
         <div class="mb-3">
@@ -26,9 +28,6 @@
         <button type="submit" class="btn btn-primary">Sync with NPSSO</button>
       </form>
 
-      {% for message in messages %}
-        <p class="my-3">{{ message }}</p>
-      {% endfor %}
       <form method="post" action="/accounts/upload_entitlements/" enctype="multipart/foU<i class="bi brm-data">
         {% csrf_token %}
         <div class="mb-3">
