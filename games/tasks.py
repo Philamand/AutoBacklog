@@ -354,6 +354,7 @@ async def load_entitlements(entitlement_id: int) -> None:
                             concept_id=entitlement.conceptMeta.conceptId
                         )
                         .exclude(concept_id=None)
+                        .order_by("region")
                         .afirst()
                     )
                     if playstation_title:
@@ -538,6 +539,7 @@ async def load_games(user_id: int) -> None:
                     playstation_title = await (
                         PlayStationTitle.objects.filter(title_id=game_stat.titleId)
                         .exclude(concept_id=None)
+                        .order_by("region")
                         .afirst()
                     )
                     if playstation_title and playstation_title.concept_id:
