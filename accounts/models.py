@@ -44,3 +44,8 @@ class EntitlementsUpload(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     data = models.JSONField()
     done = models.BooleanField(default=False)
+
+
+class EntitlementsDownload(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    npsso = models.BinaryField()

@@ -12,8 +12,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from cryptography.fernet import Fernet
-from .models import Account, EntitlementsUpload
-from games.tasks import load_games, load_entitlements
+from .models import Account, EntitlementsUpload, EntitlementsDownload
+from games.tasks import load_games, load_entitlements, download_entitlements
 
 
 class RegisterView(TemplateView):
@@ -68,15 +68,17 @@ class SettingsView(LoginRequiredMixin, TemplateView):
         Updates the user's Account model with the provided data.
         Redirects to the 'games' page upon successful update.
         """
-        account = Account.objects.filter(user=request.user)
         f = Fernet(
             os.getenv("FERNET_KEY").encode()  # type: ignore
         )
-        n = self.request.POST.get("npsso")
-        if n:
-            npsso = f.encrypt(n.encode())
-            account.update(psn_token=npsso, loading_data=True)
-            load_games.send(request.user.id)  # type: ignore
+        npsso = self.request.POST.get("npsso")
+        if npsso:
+            encrypted_npsso = f.encrypt(npsso.encode())
+            entitlement_download = EntitlementsDownload(
+                user=self.request.user, npsso=encrypted_npsso
+            )
+            entitlement_download.save()
+            download_entitlements.send(entitlement_download.pk)
         return redirect("games")
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:

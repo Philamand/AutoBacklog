@@ -1,3 +1,4 @@
+import json
 import dramatiq
 import httpx
 import asyncio
@@ -12,7 +13,7 @@ from psnawp_api.core.psnawp_exceptions import PSNAWPAuthenticationError
 from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import Game, GameTrophy, TitleId, PlayStationTitle
-from accounts.models import EntitlementsUpload
+from accounts.models import EntitlementsUpload, EntitlementsDownload
 from psn_account.models import PsnAccount
 
 
@@ -409,6 +410,45 @@ async def load_entitlements(entitlement_id: int) -> None:
         )
     if create_games:
         await Game.objects.abulk_create(list(create_games.values()))
+
+
+@dramatiq.actor
+async def download_entitlements(download_id: int) -> None:
+    try:
+        entitlement_download = await EntitlementsDownload.objects.prefetch_related(
+            "user"
+        ).aget(pk=download_id)
+    except EntitlementsDownload.DoesNotExist:
+        return
+
+    f = Fernet(
+        os.getenv("FERNET_KEY").encode()  # type: ignore
+    )
+
+    npsso = f.decrypt(entitlement_download.npsso).decode()
+
+    try:
+        psnawp = PSNAWP(npsso)
+        client = psnawp.me()
+
+        game_entitlements = []
+
+        for game_entitlement in client.game_entitlements():
+            game_entitlements.append(game_entitlement)
+
+        entitlement_upload = EntitlementsUpload(
+            user=entitlement_download.user, data=game_entitlements
+        )
+
+        await entitlement_upload.asave()
+
+        await sync_to_async(load_entitlements.send)(entitlement_upload.pk)
+
+    except Exception as e:
+        print(e)
+
+    finally:
+        await entitlement_download.adelete()
 
 
 @dramatiq.actor
