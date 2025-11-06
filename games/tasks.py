@@ -789,7 +789,7 @@ async def load_games(user_id: int) -> None:
             await Game.objects.abulk_create(list(create_games.values()))
 
     except PSNAWPAuthenticationError:
-        user.account.token_is_valid = False
+        psn_account.npsso_is_valid = False
 
     finally:
         psn_account.available = True
@@ -835,8 +835,7 @@ async def get_account_id(user_id: int, playstation_username: str) -> None:
             break
 
     except PSNAWPAuthenticationError:
-        psn_account.available = False
-        await psn_account.asave()
+        psn_account.npsso_is_valid = False
 
     finally:
         psn_account.available = True
