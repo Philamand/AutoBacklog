@@ -71,20 +71,25 @@ class SettingsView(LoginRequiredMixin, TemplateView):
         f = Fernet(
             os.getenv("FERNET_KEY").encode()  # type: ignore
         )
+        user = User.objects.prefetch_related("account").get(pk=self.request.user.id)
         npsso = self.request.POST.get("npsso")
         playstation_username = self.request.POST.get("playstationUsername")
         if npsso:
-            if npsso:
-                encrypted_npsso = f.encrypt(npsso.encode())
-                entitlement_download = EntitlementsDownload(
-                    user=self.request.user, npsso=encrypted_npsso
-                )
-                entitlement_download.save()
-                download_entitlements.send(entitlement_download.pk)
+            encrypted_npsso = f.encrypt(npsso.encode())
+            entitlement_download = EntitlementsDownload(
+                user=user, npsso=encrypted_npsso
+            )
+            entitlement_download.save()
+            user.account.loading_data = True
+            user.account.save()
+            download_entitlements.send(entitlement_download.pk)
             return redirect("games")
 
         elif playstation_username:
-            get_account_id.send(self.request.user.pk, playstation_username)  # type: ignore
+            user.account.loading_data = True
+            user.account.save()
+            get_account_id.send(user.pk, playstation_username)  # type: ignore
+            return redirect("games")
 
         return render(request, self.template_name)
 
