@@ -9,6 +9,7 @@ from asyncio import Semaphore
 from pydantic import BaseModel, ValidationError
 from datetime import datetime, timedelta
 from psnawp_api import PSNAWP
+from psnawp_api.models.search import SearchDomain
 from psnawp_api.core.psnawp_exceptions import PSNAWPAuthenticationError
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -795,3 +796,48 @@ async def load_games(user_id: int) -> None:
         await psn_account.asave()
         user.account.loading_data = False
         await user.account.asave()
+
+
+@dramatiq.actor
+async def get_account_id(user_id: int, playstation_username: str) -> None:
+    user = await User.objects.select_related("account").aget(pk=user_id)
+
+    psn_account: PsnAccount | None = None
+
+    while not psn_account:
+        psn_account = await (
+            PsnAccount.objects.filter(ready__lt=timezone.now())
+            .exclude(npsso_is_valid=False)
+            .exclude(available=False)
+            .afirst()
+        )
+        if not psn_account or not psn_account.npsso:
+            await asyncio.sleep(10)
+
+    psn_account.available = False
+    if psn_account.ready < timezone.now():
+        psn_account.ready = timezone.now()
+    await psn_account.asave()
+
+    try:
+        psnawp = PSNAWP(psn_account.npsso)  # type: ignore
+
+        results = psnawp.search(
+            search_query=playstation_username, search_domain=SearchDomain.USERS
+        )
+
+        for result in results:
+            if result["result"]["displayName"] == playstation_username:
+                user.account.playstation_username = playstation_username
+                user.account.account_id = result["result"]["accountId"]
+                await user.account.asave()
+                await sync_to_async(load_games.send)(user.pk)
+            break
+
+    except PSNAWPAuthenticationError:
+        psn_account.available = False
+        await psn_account.asave()
+
+    finally:
+        psn_account.available = True
+        await psn_account.asave()

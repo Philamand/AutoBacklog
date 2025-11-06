@@ -20,6 +20,7 @@ class Account(models.Model):
     """
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    playstation_username = models.CharField(max_length=200, blank=True, null=True)
     account_id = models.CharField(max_length=50, blank=True, null=True)
     access_token = models.BinaryField(blank=True, null=True, default=None)
     psn_token = models.BinaryField(blank=True, null=True, default=None)

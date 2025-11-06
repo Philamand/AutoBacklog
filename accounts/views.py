@@ -13,7 +13,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from cryptography.fernet import Fernet
 from .models import Account, EntitlementsUpload, EntitlementsDownload
-from games.tasks import load_games, load_entitlements, download_entitlements
+from games.tasks import get_account_id, load_entitlements, download_entitlements
 
 
 class RegisterView(TemplateView):
@@ -72,14 +72,21 @@ class SettingsView(LoginRequiredMixin, TemplateView):
             os.getenv("FERNET_KEY").encode()  # type: ignore
         )
         npsso = self.request.POST.get("npsso")
+        playstation_username = self.request.POST.get("playstationUsername")
         if npsso:
-            encrypted_npsso = f.encrypt(npsso.encode())
-            entitlement_download = EntitlementsDownload(
-                user=self.request.user, npsso=encrypted_npsso
-            )
-            entitlement_download.save()
-            download_entitlements.send(entitlement_download.pk)
-        return redirect("games")
+            if npsso:
+                encrypted_npsso = f.encrypt(npsso.encode())
+                entitlement_download = EntitlementsDownload(
+                    user=self.request.user, npsso=encrypted_npsso
+                )
+                entitlement_download.save()
+                download_entitlements.send(entitlement_download.pk)
+            return redirect("games")
+
+        elif playstation_username:
+            get_account_id.send(self.request.user.pk, playstation_username)  # type: ignore
+
+        return render(request, self.template_name)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """
