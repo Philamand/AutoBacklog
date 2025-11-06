@@ -4,5 +4,6 @@ from . import views
 urlpatterns = [
     path("", include("allauth.urls")),
     path("settings/", views.SettingsView.as_view(), name="settings"),
-    path("toggle/", views.toggle_theme, name="toggle_theme")
+    path("toggle/", views.toggle_theme, name="toggle_theme"),
+    path("upload_entitlements/", views.upload_entitlements),
 ]

@@ -4,6 +4,7 @@ from typing import Any
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
+from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -11,8 +12,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from cryptography.fernet import Fernet
-from .models import Account
-from games.tasks import load_games
+from .models import Account, EntitlementsUpload
+from games.tasks import load_games, load_entitlements
 
 
 class RegisterView(TemplateView):
@@ -69,7 +70,7 @@ class SettingsView(LoginRequiredMixin, TemplateView):
         """
         account = Account.objects.filter(user=request.user)
         f = Fernet(
-            os.getenv("FERNET_KEY").encode() # type: ignore
+            os.getenv("FERNET_KEY").encode()  # type: ignore
         )
         n = self.request.POST.get("npsso")
         if n:
@@ -90,7 +91,7 @@ class SettingsView(LoginRequiredMixin, TemplateView):
         """
         context = super().get_context_data(**kwargs)
         f = Fernet(
-            os.getenv("FERNET_KEY").encode() # type: ignore
+            os.getenv("FERNET_KEY").encode()  # type: ignore
         )
         npsso = self.request.user.account.psn_token
         if npsso:
@@ -121,3 +122,20 @@ def toggle_theme(request: HttpRequest) -> HttpResponse:
         request.session["theme"] = theme
         request.session.save()
     return HttpResponse(status=200)
+
+
+def upload_entitlements(request: HttpRequest) -> HttpResponse:
+    json_file = request.FILES["json_file"]
+    try:
+        data = json.load(json_file)
+    except Exception:
+        messages.error(request, "Please upload a valid JSON file.")
+        return redirect("settings")
+
+    entitlement_upload = EntitlementsUpload(user=request.user, data=data)
+
+    entitlement_upload.save()
+
+    load_entitlements.send(entitlement_upload.id)
+
+    return redirect("games")

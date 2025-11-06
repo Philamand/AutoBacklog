@@ -8,7 +8,7 @@ from django.db.models import F
 from django.db.models.query import QuerySet
 from django.shortcuts import redirect, render
 from .models import Game
-from .tasks import load_games
+from .tasks import load_games, load_entitlements
 
 
 def dashboard(request: HttpRequest) -> HttpResponse:

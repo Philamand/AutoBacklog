@@ -5,13 +5,14 @@ import os
 from cryptography.fernet import Fernet
 from asgiref.sync import sync_to_async
 from asyncio import Semaphore
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from datetime import datetime, timedelta
 from psnawp_api import PSNAWP
 from psnawp_api.core.psnawp_exceptions import PSNAWPAuthenticationError
 from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import Game, GameTrophy, TitleId, PlayStationTitle
+from accounts.models import EntitlementsUpload
 from psn_account.models import PsnAccount
 
 
@@ -147,6 +148,12 @@ class GameEntitlement(BaseModel):
     serviceType: int | None = None
     skuId: str
     titleMeta: TitleMeta
+
+
+class GameEntitlements(BaseModel):
+    """Represents a list of game entitlement entries."""
+
+    entitlements: list[GameEntitlement]
 
 
 class EntitlementsResult(BaseModel):
@@ -313,6 +320,94 @@ async def get_entitlements(
             offset += 100
 
     return entitlements, titleIds, entitlementsResult.totalResults
+
+
+@dramatiq.actor
+async def load_entitlements(entitlement_id: int) -> None:
+    entitlement_upload = await EntitlementsUpload.objects.prefetch_related("user").aget(
+        pk=entitlement_id
+    )
+
+    create_games = {}
+    update_games = {}
+
+    try:
+        game_entitlements = GameEntitlements(entitlements=entitlement_upload.data)
+    except ValidationError:
+        return
+
+    for entitlement in game_entitlements.entitlements:
+        if entitlement.conceptMeta.conceptId:
+            if (
+                entitlement.conceptMeta.conceptId not in create_games.keys()
+                and entitlement.conceptMeta.conceptId not in update_games.keys()
+            ):
+                try:
+                    game = await Game.objects.aget(
+                        owner=entitlement_upload.user,
+                        psn_id=entitlement.conceptMeta.conceptId,
+                    )
+                    update_games[entitlement.conceptMeta.conceptId] = game
+                except Game.DoesNotExist:
+                    playstation_title = (
+                        await PlayStationTitle.objects.filter(
+                            concept_id=entitlement.conceptMeta.conceptId
+                        )
+                        .exclude(concept_id=None)
+                        .afirst()
+                    )
+                    if playstation_title:
+                        game = Game(
+                            owner=entitlement_upload.user,
+                            title=playstation_title.name,
+                            psn_id=entitlement.conceptMeta.conceptId,
+                        )
+                        create_games[entitlement.conceptMeta.conceptId] = game
+
+            if entitlement.conceptMeta.conceptId in create_games.keys():
+                create_games[
+                    entitlement.conceptMeta.conceptId
+                ].active = entitlement.activeFlag
+                create_games[
+                    entitlement.conceptMeta.conceptId
+                ].active_date = entitlement.activeDate
+                if entitlement.entitlementAttributes[0].platformId == "ps4":
+                    create_games[entitlement.conceptMeta.conceptId].ps4 = True
+                else:
+                    create_games[entitlement.conceptMeta.conceptId].ps5 = True
+                if entitlement.rewardMeta.retentionPolicy == 4:
+                    create_games[entitlement.conceptMeta.conceptId].ownership = "psp"
+                elif entitlement.rewardMeta.retentionPolicy == 5:
+                    create_games[entitlement.conceptMeta.conceptId].ownership = "pgc"
+            elif entitlement.conceptMeta.conceptId in update_games.keys():
+                update_games[
+                    entitlement.conceptMeta.conceptId
+                ].active = entitlement.activeFlag
+                update_games[
+                    entitlement.conceptMeta.conceptId
+                ].active_date = entitlement.activeDate
+                if entitlement.entitlementAttributes[0].platformId == "ps4":
+                    update_games[entitlement.conceptMeta.conceptId].ps4 = True
+                else:
+                    update_games[entitlement.conceptMeta.conceptId].ps5 = True
+                if entitlement.rewardMeta.retentionPolicy == 4:
+                    update_games[entitlement.conceptMeta.conceptId].ownership = "psp"
+                elif entitlement.rewardMeta.retentionPolicy == 5:
+                    update_games[entitlement.conceptMeta.conceptId].ownership = "pgc"
+
+    if update_games:
+        await Game.objects.abulk_update(
+            list(update_games.values()),
+            [
+                "ps4",
+                "ps5",
+                "ownership",
+                "active",
+                "active_date",
+            ],
+        )
+    if create_games:
+        await Game.objects.abulk_create(list(create_games.values()))
 
 
 @dramatiq.actor

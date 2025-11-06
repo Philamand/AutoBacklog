@@ -16,6 +16,15 @@
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
+
+      {% for message in messages %}
+        <p class="mt-4">{{ message }}</p>
+      {% endfor %}
+      <form method="post" action="/accounts/upload_entitlements/" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="json_file" accept=".json" required>
+        <button type="submit">Upload JSON</button>
+    </form>
   
 <hr />
 <div class="form-check form-switch">

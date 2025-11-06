@@ -38,3 +38,9 @@ class Account(models.Model):
             not self.last_updated
             or (timezone.now() - self.last_updated).total_seconds() > 1800
         )
+
+
+class EntitlementsUpload(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    data = models.JSONField()
+    done = models.BooleanField(default=False)
