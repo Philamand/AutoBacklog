@@ -52,7 +52,7 @@ services:
       timeout: 5s
       retries: 5
   umami-db:
-    image: postgres:16
+    image: postgres:15-alpine
     env_file:
       - .umami_db.env
     volumes:
