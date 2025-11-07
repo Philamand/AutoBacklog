@@ -4,6 +4,7 @@ from typing import Any
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
+from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -11,8 +12,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from cryptography.fernet import Fernet
-from .models import Account
-from games.tasks import load_games
+from .models import Account, EntitlementsUpload, EntitlementsDownload
+from games.tasks import get_account_id, load_entitlements, download_entitlements
 
 
 class RegisterView(TemplateView):
@@ -67,16 +68,30 @@ class SettingsView(LoginRequiredMixin, TemplateView):
         Updates the user's Account model with the provided data.
         Redirects to the 'games' page upon successful update.
         """
-        account = Account.objects.filter(user=request.user)
         f = Fernet(
-            os.getenv("FERNET_KEY").encode() # type: ignore
+            os.getenv("FERNET_KEY").encode()  # type: ignore
         )
-        n = self.request.POST.get("npsso")
-        if n:
-            npsso = f.encrypt(n.encode())
-            account.update(psn_token=npsso, loading_data=True)
-            load_games.send(request.user.id)  # type: ignore
-        return redirect("games")
+        user = User.objects.prefetch_related("account").get(pk=self.request.user.id)
+        npsso = self.request.POST.get("npsso")
+        playstation_username = self.request.POST.get("playstationUsername")
+        if npsso:
+            encrypted_npsso = f.encrypt(npsso.encode())
+            entitlement_download = EntitlementsDownload(
+                user=user, npsso=encrypted_npsso
+            )
+            entitlement_download.save()
+            user.account.loading_data = True
+            user.account.save()
+            download_entitlements.send(entitlement_download.pk)
+            return redirect("games")
+
+        elif playstation_username:
+            user.account.loading_data = True
+            user.account.save()
+            get_account_id.send(user.pk, playstation_username)  # type: ignore
+            return redirect("games")
+
+        return render(request, self.template_name)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """
@@ -90,7 +105,7 @@ class SettingsView(LoginRequiredMixin, TemplateView):
         """
         context = super().get_context_data(**kwargs)
         f = Fernet(
-            os.getenv("FERNET_KEY").encode() # type: ignore
+            os.getenv("FERNET_KEY").encode()  # type: ignore
         )
         npsso = self.request.user.account.psn_token
         if npsso:
@@ -121,3 +136,20 @@ def toggle_theme(request: HttpRequest) -> HttpResponse:
         request.session["theme"] = theme
         request.session.save()
     return HttpResponse(status=200)
+
+
+def upload_entitlements(request: HttpRequest) -> HttpResponse:
+    json_file = request.FILES["json_file"]
+    try:
+        data = json.load(json_file)
+    except Exception:
+        messages.error(request, "Please upload a valid JSON file.")
+        return redirect("settings")
+
+    entitlement_upload = EntitlementsUpload(user=request.user, data=data)
+
+    entitlement_upload.save()
+
+    load_entitlements.send(entitlement_upload.id)
+
+    return redirect("games")

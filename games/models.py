@@ -12,6 +12,7 @@ STATUS = [
 
 OWNERSHIPS = [
     ("own", "Own"),
+    ("phy", "Physical"),
     ("wis", "Wishlist"),
     ("psp", "PS+"),
     ("pgc", "Game Catalog"),
@@ -89,3 +90,12 @@ class TitleId(models.Model):
 
     def __str__(self):
         return f"{self.owner} - {self.game}"
+
+
+class PlayStationTitle(models.Model):
+    title_id = models.CharField(max_length=50, unique=True)
+    concept_id = models.IntegerField(blank=True, null=True)
+    name = models.CharField(max_length=250)
+    content_id = models.CharField(max_length=250, blank=True, null=True)
+    region = models.CharField(max_length=2, blank=True, null=True)
+    publisher_id = models.CharField(max_length=6, blank=True, null=True)

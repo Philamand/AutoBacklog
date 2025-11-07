@@ -1,5 +1,7 @@
 from typing import Any
 from django.http import HttpRequest, HttpResponse, QueryDict
+from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -8,7 +10,7 @@ from django.db.models import F
 from django.db.models.query import QuerySet
 from django.shortcuts import redirect, render
 from .models import Game
-from .tasks import load_games
+from .tasks import load_games, load_entitlements
 
 
 def dashboard(request: HttpRequest) -> HttpResponse:
@@ -111,7 +113,7 @@ def reset_filters(request: HttpRequest) -> HttpResponse:
         {
             "status": ["unp", "unf", "bea", "com"],
             "platform": "all",
-            "ownership": ["own", "psp", "pgc"],
+            "ownership": ["own", "phy", "psp", "pgc"],
             "active": "all",
         },
     )
@@ -125,7 +127,7 @@ def reset_filters(request: HttpRequest) -> HttpResponse:
         request.session["filters"] = filters
         return render(request, "games/filters/platforms.html", {"filters": filters})
     elif reset == "ownership":
-        filters["ownership"] = ["own", "psp", "pgc"]
+        filters["ownership"] = ["own", "phy", "psp", "pgc"]
         request.session["filters"] = filters
         return render(request, "games/filters/ownership.html", {"filters": filters})
     elif reset == "active":
@@ -180,11 +182,16 @@ def update_status(request: HttpRequest) -> HttpResponse:
         HttpResponse: The HTTP response object.
     """
     response = HttpResponse()
-    if request.user.account.loading_data:
+    user = User.objects.prefetch_related("account").get(pk=request.user.id)
+    if user.account.loading_data:
         response.status_code = 200
         return response
 
-    if not request.user.account.npsso_is_valid:
+    if not user.account.account_id:
+        messages.error(
+            request,
+            "PlayStation account not found. Please make sure that your account is public.",
+        )
         response["HX-Redirect"] = "/accounts/settings/"
     else:
         response["HX-Redirect"] = "/games/"
@@ -246,7 +253,7 @@ class LibraryView(LoginRequiredMixin, ListView):
             {
                 "status": ["unp", "unf", "bea", "com"],
                 "platform": "all",
-                "ownership": ["own", "psp", "pgc"],
+                "ownership": ["own", "phy", "psp", "pgc"],
                 "active": "all",
             },
         )
@@ -281,6 +288,8 @@ class LibraryView(LoginRequiredMixin, ListView):
         own = []
         if self.request.GET.get("own"):
             own.append("own")
+        if self.request.GET.get("phy"):
+            own.append("phy")
         if self.request.GET.get("psp"):
             own.append("psp")
         if self.request.GET.get("pgc"):

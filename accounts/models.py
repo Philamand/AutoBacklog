@@ -20,6 +20,8 @@ class Account(models.Model):
     """
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    playstation_username = models.CharField(max_length=200, blank=True, null=True)
+    account_id = models.CharField(max_length=50, blank=True, null=True)
     access_token = models.BinaryField(blank=True, null=True, default=None)
     psn_token = models.BinaryField(blank=True, null=True, default=None)
     token_is_valid = models.BooleanField(default=True)
@@ -37,3 +39,14 @@ class Account(models.Model):
             not self.last_updated
             or (timezone.now() - self.last_updated).total_seconds() > 1800
         )
+
+
+class EntitlementsUpload(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    data = models.JSONField()
+    done = models.BooleanField(default=False)
+
+
+class EntitlementsDownload(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    npsso = models.BinaryField()

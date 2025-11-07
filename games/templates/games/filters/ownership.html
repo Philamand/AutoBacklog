@@ -5,6 +5,8 @@
     </div>
     <input type="checkbox" class="btn-check" id="ownershipOwn" name="own" value="true" autocomplete="off" {% if "own" in filters.ownership %}checked{% endif %}>
     <label class="btn" for="ownershipOwn">Owned</label>
+    <input type="checkbox" class="btn-check" id="ownershipPhy" name="phy" value="true" autocomplete="off" {% if "phy" in filters.ownership %}checked{% endif %}>
+    <label class="btn" for="ownershipPhy">Physical</label>
     <input type="checkbox" class="btn-check" id="ownershipSub" name="psp" value="true" autocomplete="off" {% if "psp" in filters.ownership %}checked{% endif %}>
     <label class="btn" for="ownershipSub">PS+</label>
     <input type="checkbox" class="btn-check" id="ownershipCatalog" name="pgc" value="true" autocomplete="off" {% if "pgc" in filters.ownership %}checked{% endif %}>
