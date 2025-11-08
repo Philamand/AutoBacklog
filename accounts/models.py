@@ -32,7 +32,7 @@ class Account(models.Model):
 
     @property
     def is_stale(self):
-        return self.psn_token and (
+        return (
             not self.last_updated
             or (timezone.now() - self.last_updated).total_seconds() > 1800
         )
