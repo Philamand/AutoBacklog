@@ -104,14 +104,7 @@ class SettingsView(LoginRequiredMixin, TemplateView):
         - dict[str, Any]: A dictionary containing the context data.
         """
         context = super().get_context_data(**kwargs)
-        f = Fernet(
-            os.getenv("FERNET_KEY").encode()  # type: ignore
-        )
-        npsso = self.request.user.account.psn_token
-        if npsso:
-            npsso = f.decrypt(npsso).decode()
-        context["npsso"] = npsso
-        context["token_is_valid"] = self.request.user.account.token_is_valid
+
         context["theme"] = self.request.session.get("theme")
 
         return context
