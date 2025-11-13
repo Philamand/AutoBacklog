@@ -20,7 +20,7 @@
 <div class="vh-100"></div>
 <div class="py-5 bg-body-secondary">
     <div class="container row mx-auto">
-      {% include 'components/feature.html' with icon='lock' title='NPSSO-Powered Import' content="Securely connect via Sony's official login (no password sharing)." only %}
+      {% include 'components/feature.html' with icon='lock' title='Secure Import' content="Securely import your public library with just your username." only %}
       {% include 'components/feature.html' with icon='trash' title='Declutter with Shelving' content="Shelf games you'll never play, keep your backlog focused." only %}
       {% include 'components/feature.html' with icon='bar-chart' title='Completion Dashboard' content="Instant visual stats: Unplayed - Unfinished - Finished - Completed." only %}
       {% include 'components/feature.html' with icon='funnel' title='Smart filters' content="Filter games by status: Owned - PS+ - Game Catalog - Unplayed and more." only %}
@@ -37,18 +37,18 @@
     </div>
     <div class="col-12 col-md-6 mt-4 mt-md-0">
         <div>
-            <h5>1. Get NPSSO</h5>
-            <p>30-second process from Sony's website</p>
+            <h5>1. Enter your PlayStation username</h5>
+            <p>Just enter your public username</p>
         </div>
 
         <div>
-            <h5>2. Paste in Our App</h5>
-            <p>We handle the rest</p>
+            <h5>2. Wait for a minute</h5>
+            <p>Wait while we check your profile and library</p>
         </div>
 
         <div>
-            <h5>3. Scan & Organize</h5>
-            <p>Click 'Update' whenever you want fresh data</p>
+            <h5>3. Enjoy your library</h5>
+            <p>With automatic completion status</p>
         </div>
     </div>
     </div>
@@ -60,9 +60,13 @@
 
 
 <div class="accordion" id="accordionFaq">
-  {% include "components/accordion_item.html" with parent="accordionFaq" id="One" header="Why NPSSO instead of PSN login?" body="Sony's API rules require it, we'll show you exactly how to get yours safely." expanded="true" only %}
-  {% include "components/accordion_item.html" with parent="accordionFaq" id="Two" header="Can I hide PS+ games I don't care about?" body="Yes! Shelf them and they'll vanish from your main view." only %}
-  {% include "components/accordion_item.html" with parent="accordionFaq" id="Four" header="What if I already use a service that use my NPSSO?" body="You need to reuse the same NPSSO on all your services, Otherwise only the last one you used will remain active." only %}
+  {% include "components/accordion_item.html" with parent="accordionFaq" id="One" header="What data can I get with only my PlayStation username?" body="You can get all your played games with completion status: unfinished, finished or completed (plat)." expanded="true" only %}
+  {% include "components/accordion_item.html" with parent="accordionFaq" id="Two" header="What other data can I get?" body="If you want to use your NPSSO, you can also get your unplayed games and ownership status: Owned, monthly game (PS+), game catalog (PS+)." only %}
+  {% include "components/accordion_item.html" with parent="accordionFaq" id="Three" header="Do I need to enter my NPSSO on this website to get my private data?" body="No, if you don't wish to enter your NPSSO on our website, you can use our open-source python script, then import the json file into your account." only %}
+  {% include "components/accordion_item.html" with parent="accordionFaq" id="Four" header="How can I get my NPSSO?" body="We provide full instructions to safely get your NPSSO on the Settings page." only %}
+  {% include "components/accordion_item.html" with parent="accordionFaq" id="Five" header="Can I hide PS+ games I don't care about?" body="Yes! Shelf them and they'll vanish from your main view." only %}
+  {% include "components/accordion_item.html" with parent="accordionFaq" id="Six" header="Is AutoBacklog opensource?" body="Yes! AutoBacklog is opensource. You can find the GitHub links in the header and footer of this page." only %}
+  {% include "components/accordion_item.html" with parent="accordionFaq" id="Seven" header="I try to import my library but it keeps failing!" body="Make sure your played games and earned trophies are public. Also make sure that your account is searchable by all." only %}
 </div>
 </div>
 </div>
