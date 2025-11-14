@@ -601,7 +601,6 @@ async def load_games(user_id: int) -> None:
                         .afirst()
                     )
                     if playstation_title and playstation_title.concept_id:
-                        print(game_stat.name, game_stat.service)
                         try:
                             game = await Game.objects.aget(
                                 owner=user, psn_id=playstation_title.concept_id
@@ -612,6 +611,8 @@ async def load_games(user_id: int) -> None:
                                 )
                                 if game_stat.service == "ps_plus":
                                     update_games[game.psn_id].ownership = "psp"
+                                if update_games[game.psn_id].status == "unf":
+                                    update_games[game.psn_id].status = "unp"
                             else:
                                 game.playtime = int(
                                     game_stat.playDuration.total_seconds() / 60  # type: ignore
@@ -629,6 +630,8 @@ async def load_games(user_id: int) -> None:
                                     game.last_played = game_stat.lastPlayedDateTime
                                 if game_stat.service == "ps_plus":
                                     game.ownership = "psp"
+                                if game.status == "unf":
+                                    game.status = "unp"
                                 update_games[game.psn_id] = game
                         except Game.DoesNotExist:
                             service = "own"
