@@ -3,6 +3,8 @@ AutoBacklog is a backlogging app built with Django that automatically import you
 
 This is a personal project that I decided to share to help others. My priority was not to write clean code but code that works and that is fast to write. A code cleanup will happen eventually.
 
+You can access a hosted version for free at [autobacklog.com](https://autobacklog.com).
+
 ## How to use ?
 ### In vscode
 I use vscode with devcontainers to build this app. Here is how to set it up.
@@ -67,6 +69,6 @@ Then run `docker compose up` and `docker compose run autobacklog uv run manage.p
 
 ### Admin Setup
 
-In the admin, head to Psn accounts and add a PSN account with it's NPSSO to be able to access tha PlayStation API.
+In the admin, head to Psn accounts and add a PSN account with it's NPSSO to be able to access the PlayStation API.
 
 Then, downlad the `json/All_Titles.json` file from this repository: https://github.com/andshrew/PlayStation-Titles/tree/main/Json and import it in the Play station titles section of the admin.
