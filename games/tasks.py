@@ -614,8 +614,8 @@ async def load_games(
                                 )
                                 if game_stat.service == "ps_plus":
                                     update_games[game.psn_id].ownership = "psp"
-                                if update_games[game.psn_id].status == "unf":
-                                    update_games[game.psn_id].status = "unp"
+                                if update_games[game.psn_id].status == "unp":
+                                    update_games[game.psn_id].status = "unf"
                             else:
                                 game.playtime = int(
                                     game_stat.playDuration.total_seconds() / 60  # type: ignore
@@ -633,8 +633,8 @@ async def load_games(
                                     game.last_played = game_stat.lastPlayedDateTime
                                 if game_stat.service == "ps_plus":
                                     game.ownership = "psp"
-                                if game.status == "unf":
-                                    game.status = "unp"
+                                if game.status == "unp":
+                                    game.status = "unf"
                                 update_games[game.psn_id] = game
                         except Game.DoesNotExist:
                             service = "own"
