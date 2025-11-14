@@ -30,7 +30,7 @@
         <button type="submit" class="btn btn-primary">Sync with NPSSO</button>
       </form>
 
-      <form method="post" action="/accounts/upload_entitlements/" enctype="multipart/foU<i class="bi brm-data">
+      <form method="post" action="/accounts/upload_entitlements/" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
           <label for="formFile" class="form-label"><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#JsonModal">Sync with JSON file<i class="bi bi-question-circle ms-2"></i></button></label>
