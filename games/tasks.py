@@ -537,7 +537,11 @@ async def load_trophy(titleId: str, conceptId: int, user_id: int) -> None:
 
 
 @dramatiq.actor
-async def load_games(user_id: int) -> None:
+async def load_games(
+    user_id: int,
+    download_id: int | None = None,
+    load_entitlements_id: int | None = None,
+) -> None:
     """
     Load games associated with a user's PlayStation Network account.
 
@@ -798,6 +802,11 @@ async def load_games(user_id: int) -> None:
             )
         if create_games:
             await Game.objects.abulk_create(list(create_games.values()))
+
+        if download_id:
+            await sync_to_async(download_entitlements.send)(download_id)
+        elif load_entitlements_id:
+            await sync_to_async(load_entitlements.send)(load_entitlements_id)
 
     except PSNAWPAuthenticationError:
         psn_account.npsso_is_valid = False

@@ -13,7 +13,7 @@
   <form class="mb-3" method="post">
         {% csrf_token %}
         <div class="mb-3">
-          <label for="playstationUsername" class="form-label px-3"><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#UsernameModal">PlayStation Username:<i class="bi bi-question-circle ms-2"></i></button></label>
+          <label for="playstationUsername" class="form-label"><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#UsernameModal">PlayStation Username:<i class="bi bi-question-circle ms-2"></i></button></label>
           <input type="text" class="form-control" id="playstationUsername" name="playstationUsername">
         </div>
         <button type="submit" class="btn btn-primary">Sync with username</button>

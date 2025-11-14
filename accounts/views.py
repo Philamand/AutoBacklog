@@ -13,7 +13,10 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from cryptography.fernet import Fernet
 from .models import Account, EntitlementsUpload, EntitlementsDownload
-from games.tasks import get_account_id, load_entitlements, download_entitlements
+from games.tasks import (
+    get_account_id,
+    load_games,
+)
 from games.models import Game
 
 
@@ -76,15 +79,21 @@ class SettingsView(LoginRequiredMixin, TemplateView):
         npsso = self.request.POST.get("npsso")
         playstation_username = self.request.POST.get("playstationUsername")
         if npsso:
-            encrypted_npsso = f.encrypt(npsso.encode())
-            entitlement_download = EntitlementsDownload(
-                user=user, npsso=encrypted_npsso
-            )
-            entitlement_download.save()
-            user.account.loading_data = True
-            user.account.save()
-            download_entitlements.send(entitlement_download.pk)
-            return redirect("games")
+            if user.account.account_id:
+                encrypted_npsso = f.encrypt(npsso.encode())
+                entitlement_download = EntitlementsDownload(
+                    user=user, npsso=encrypted_npsso
+                )
+                entitlement_download.save()
+                user.account.loading_data = True
+                user.account.save()
+                load_games.send(user_id=user.pk, download_id=entitlement_download.pk)
+                return redirect("games")
+            else:
+                messages.error(
+                    self.request,
+                    "Please provide your PlayStation username before using your NPSSO.",
+                )
 
         elif playstation_username:
             user.account.loading_data = True
@@ -136,6 +145,7 @@ def toggle_theme(request: HttpRequest) -> HttpResponse:
     return HttpResponse(status=200)
 
 
+@login_required
 def upload_entitlements(request: HttpRequest) -> HttpResponse:
     json_file = request.FILES["json_file"]
     try:
@@ -144,10 +154,13 @@ def upload_entitlements(request: HttpRequest) -> HttpResponse:
         messages.error(request, "Please upload a valid JSON file.")
         return redirect("settings")
 
-    entitlement_upload = EntitlementsUpload(user=request.user, data=data)
+    if request.user.id:
+        entitlement_upload = EntitlementsUpload(user=request.user, data=data)
 
-    entitlement_upload.save()
+        entitlement_upload.save()
 
-    load_entitlements.send(entitlement_upload.id)
+        load_games.send(
+            user_id=request.user.id, load_entitlements_id=entitlement_upload.id
+        )
 
     return redirect("games")
