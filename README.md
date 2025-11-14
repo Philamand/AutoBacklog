@@ -1,5 +1,5 @@
 # AutoBacklog
-AutoBacklog is a backlogging app built with Django that automatically import your PSN library. It tags your game as unplayed, played, beaten or platinumed. It also tags your games as bought, monthly game (PS+) or game catalog (PS+).
+AutoBacklog is a backlogging app built with Django that automatically import your PSN library, distributed under the GNU Affero General Public License v3.0. It tags your game as unplayed, played, beaten or platinumed. It also tags your games as bought, monthly game (PS+) or game catalog (PS+).
 
 This is a personal project that I decided to share to help others. This is not clean code, this is code I wrote fast and that work. I plan to clean up the codebase.
 
