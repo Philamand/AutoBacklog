@@ -16,6 +16,8 @@ from .models import Account, EntitlementsUpload, EntitlementsDownload
 from games.tasks import (
     get_account_id,
     load_games,
+    download_entitlements,
+    load_entitlements,
 )
 from games.models import Game
 
@@ -87,7 +89,12 @@ class SettingsView(LoginRequiredMixin, TemplateView):
                 entitlement_download.save()
                 user.account.loading_data = True
                 user.account.save()
-                load_games.send(user_id=user.pk, download_id=entitlement_download.pk)
+                if user.account.is_stale:
+                    download_entitlements.send(entitlement_download.pk)
+                else:
+                    load_games.send(
+                        user_id=user.pk, download_id=entitlement_download.pk
+                    )
                 return redirect("games")
             else:
                 messages.error(
@@ -159,8 +166,11 @@ def upload_entitlements(request: HttpRequest) -> HttpResponse:
 
         entitlement_upload.save()
 
-        load_games.send(
-            user_id=request.user.id, load_entitlements_id=entitlement_upload.id
-        )
+        if request.user.account.is_stale:
+            load_entitlements.send(entitlement_upload.id)
+        else:
+            load_games.send(
+                user_id=request.user.id, load_entitlements_id=entitlement_upload.id
+            )
 
     return redirect("games")

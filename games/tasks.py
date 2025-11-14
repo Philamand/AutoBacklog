@@ -1,4 +1,3 @@
-import json
 import dramatiq
 import httpx
 import asyncio
@@ -13,7 +12,7 @@ from psnawp_api.models.search import SearchDomain
 from psnawp_api.core.psnawp_exceptions import PSNAWPAuthenticationError
 from django.contrib.auth.models import User
 from django.utils import timezone
-from .models import Game, GameTrophy, TitleId, PlayStationTitle
+from .models import Game, GameTrophy, PlayStationTitle
 from accounts.models import EntitlementsUpload, EntitlementsDownload
 from psn_account.models import PsnAccount
 
@@ -807,6 +806,8 @@ async def load_games(
             await sync_to_async(download_entitlements.send)(download_id)
         elif load_entitlements_id:
             await sync_to_async(load_entitlements.send)(load_entitlements_id)
+
+        user.account.last_updated = timezone.now()
 
     except PSNAWPAuthenticationError:
         psn_account.npsso_is_valid = False

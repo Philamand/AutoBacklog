@@ -34,7 +34,7 @@ class Account(models.Model):
     def is_stale(self):
         return (
             not self.last_updated
-            or (timezone.now() - self.last_updated).total_seconds() > 1800
+            or (timezone.now() - self.last_updated).total_seconds() > 3600
         )
 
 
