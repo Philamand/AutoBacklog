@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Settings{% endblock %}
 
@@ -83,6 +84,9 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <video class="w-100" controls>
+          <source src="{% static 'assets/videos/getnpsso.mp4' %}" type="video/mp4" />
+        </video>
         <ul>
           <li>In your web browser, access <a href="https://store.playstation.com" target="_blank">https://store.playstation.com <i class="bi bi-box-arrow-up-right"></i></a> and log in with your PSN account.</li>
           <li>In the same browser, access <a href="https://ca.account.sony.com/api/v1/ssocookie" target="_blank">https://ca.account.sony.com/api/v1/ssocookie <i class="bi bi-box-arrow-up-right"></i></a></li>
