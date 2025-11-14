@@ -1,9 +1,7 @@
 # AutoBacklog
 AutoBacklog is a backlogging app built with Django that automatically import your PSN library, distributed under the GNU Affero General Public License v3.0. It tags your game as unplayed, played, beaten or platinumed. It also tags your games as bought, monthly game (PS+) or game catalog (PS+).
 
-This is a personal project that I decided to share to help others. This is not clean code, this is code I wrote fast and that work. I plan to clean up the codebase.
-
-***Important:*** This app use the NPSSO to retrieve the user's library. The NPSSO is currently stored on the database. It's "hidden" from the admin, but someone with full access to the server can get and decrypt all the NPSSOs with a few line of code. The NPSSO is required to get the user's unplayed games. I'm working on a solution to get the user's library without his NPSSO, with a client side tool to retrieve the unplayed games. The user will have to provide his NPSSO every time he wants to get his unplayed games, but it will be way more secure, as the NPSSO will only be used client-side.
+This is a personal project that I decided to share to help others. My priority was not to write clean code but code that works and that is fast to write. A code cleanup will happen eventually.
 
 ## How to use ?
 ### In vscode
@@ -66,3 +64,9 @@ print(key)
 If you use Umami, do not forget to add the script tag in the base.html.
 
 Then run `docker compose up` and `docker compose run autobacklog uv run manage.py rundramatiq`. After the first run, be sure to run `docker compose run autobacklog uv run manage.py makemigrations`, `docker compose run autobacklog uv run manage.py migrate` and `docker compose run autobacklog uv run manage.py collectstatic`
+
+### Admin Setup
+
+In the admin, head to Psn accounts and add a PSN account with it's NPSSO to be able to access tha PlayStation API.
+
+Then, downlad the `json/All_Titles.json` file from this repository: https://github.com/andshrew/PlayStation-Titles/tree/main/Json and import it in the Play station titles section of the admin.
