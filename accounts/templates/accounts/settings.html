@@ -13,10 +13,10 @@
   <form class="mb-3" method="post">
         {% csrf_token %}
         <div class="mb-3">
-          <label for="playstationUsername" class="form-label px-3">PlayStation username:</label>
+          <label for="playstationUsername" class="form-label px-3"><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#UsernameModal">PlayStation Username:<i class="bi bi-question-circle ms-2"></i></button></label>
           <input type="text" class="form-control" id="playstationUsername" name="playstationUsername">
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="submit" class="btn btn-primary">Sync with username</button>
       </form>
 <hr />
       <form class="mb-3" method="post">
@@ -45,6 +45,28 @@
     </label>
   </div>
 
+  <div class="modal fade" id="UsernameModal" tabindex="-1" aria-labelledby="UsernameModalTitle" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="UsernameModalTitle">How to import your public library?</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li>In your PlayStation account settings, make sure that your library is public and that your account is searchable by all.</li>
+          <li>Enter your PlayStation username in a case-sensitive manner.</li>
+          <li>Wait for your library to finish loading (it may take a few minutes).</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
   <div class="modal fade" id="NpssoModal" tabindex="-1" aria-labelledby="NpssoModalTitle" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -71,14 +93,15 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="JsonModalTitle">How to get your JSON file ?</h1>
+        <h1 class="modal-title fs-5" id="JsonModalTitle">How to get your JSON file?</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <ul>
-          <li>In your web browser, access <a href="https://store.playstation.com" target="_blank">https://store.playstation.com <i class="bi bi-box-arrow-up-right"></i></a> and log in with your PSN account.</li>
-          <li>In the same browser, access <a href="https://ca.account.sony.com/api/v1/ssocookie" target="_blank">https://ca.account.sony.com/api/v1/ssocookie <i class="bi bi-box-arrow-up-right"></i></a></li>
-          <li>You should see a response with npsso followed by a string of letters and numbers. Highlight and copy this (without the "").</li>
+          <li>Get your NPSSO token by following the instructions above.</li>
+          <li>Download our <a href="" target="_blank">open-source python script</a>.</li>
+          <li>Follow the instruction from the README.</li>
+          <li>Import the generated json file and click "Sync with json file".</li>
         </ul>
       </div>
       <div class="modal-footer">
