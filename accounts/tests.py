@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
 from .models import Account
+from games.models import Game
 
 
 class SignupViewTest(TestCase):
@@ -87,8 +88,22 @@ class SettingsViewTests(TestCase):
         self.user.account = Account()
         self.user.account.save()
         self.client.login(username="TestUser", password="testpassword")
+        self.url = reverse("settings")
 
     def test_get_settings(self):
-        url = reverse("settings")
-        response = self.client.get(url)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
+
+    def test_clear_library(self):
+        game = Game(owner=self.user, title="Grand Theft Auto 5")
+        game.save()
+
+        initial_count = Game.objects.filter(owner=self.user).count()
+
+        response = self.client.delete(self.url)
+
+        final_count = Game.objects.filter(owner=self.user).count()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(initial_count, 1)
+        self.assertEqual(final_count, 0)

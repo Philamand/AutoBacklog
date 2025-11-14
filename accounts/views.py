@@ -14,6 +14,7 @@ from django.core.validators import validate_email
 from cryptography.fernet import Fernet
 from .models import Account, EntitlementsUpload, EntitlementsDownload
 from games.tasks import get_account_id, load_entitlements, download_entitlements
+from games.models import Game
 
 
 class RegisterView(TemplateView):
@@ -92,6 +93,10 @@ class SettingsView(LoginRequiredMixin, TemplateView):
             return redirect("games")
 
         return render(request, self.template_name)
+
+    def delete(self, request: HttpRequest) -> HttpResponse:
+        Game.objects.filter(owner=self.request.user).delete()
+        return render(request, "accounts/clear_library.html")
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         """

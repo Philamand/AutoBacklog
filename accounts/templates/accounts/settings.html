@@ -38,12 +38,18 @@
     </form>
   
 <hr />
-<div class="form-check form-switch">
+<div class="form-check form-switch mb-3">
     <input class="form-check-input" type="checkbox" value="" id="checkNativeSwitch" name="darkMode" switch onclick="toggle_theme()">
     <label class="form-check-label" for="checkNativeSwitch">
       Dark Mode
     </label>
   </div>
+
+<hr />
+<div id="clearLibrary">
+  <button type="button" class="btn btn-danger" hx-delete="{% url 'settings' %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-target="#clearLibrary" hx-confirm="This will clear all the data in your library. Are you sure you want to proceed?">Clear Library</button>
+</div>
+
 
   <div class="modal fade" id="UsernameModal" tabindex="-1" aria-labelledby="UsernameModalTitle" aria-hidden="true">
   <div class="modal-dialog">

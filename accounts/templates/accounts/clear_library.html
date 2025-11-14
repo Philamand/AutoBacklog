@@ -1,0 +1,6 @@
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+  Your library has been cleared!
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<button type="button" class="btn btn-danger" hx-delete="{% url 'settings' %}" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-confirm="This will clear all the data in your library. Are you sure you want to proceed?">Clear Library</button>
