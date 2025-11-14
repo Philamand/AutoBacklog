@@ -6,10 +6,12 @@
 
 <div class="container">
   {% for message in messages %}
+    {% if message.level == ERROR %}
         <div class="alert alert-danger" role="alert">
           {{ message }}
         </div>
-      {% endfor %}
+    {% endif %}
+  {% endfor %}
   <form class="mb-3" method="post">
         {% csrf_token %}
         <div class="mb-3">
