@@ -16,7 +16,7 @@
         {% csrf_token %}
         <div class="mb-3">
           <label for="playstationUsername" class="form-label"><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#UsernameModal">PlayStation Username:<i class="bi bi-question-circle ms-2"></i></button></label>
-          <input type="text" class="form-control" id="playstationUsername" name="playstationUsername">
+          <input type="text" class="form-control" id="playstationUsername" name="playstationUsername" {% if playstation_username %}value="{{ playstation_username }}"{% endif %}>
         </div>
         <button type="submit" class="btn btn-primary">Sync with username</button>
       </form>

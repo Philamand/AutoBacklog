@@ -127,6 +127,7 @@ class SettingsView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         context["theme"] = self.request.session.get("theme")
+        context["playstation_username"] = self.request.user.account.playstation_username
 
         return context
 
