@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import SafeText
-from .models import Game
+from .models import Game, PlayStationTitle
 
 
 class DashboardViewTests(TestCase):
@@ -458,3 +458,115 @@ class LibraryViewTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.context["games"]), list(games))
+
+
+class SearchTitlesViewTest(TestCase):
+    def setUp(self):
+        self.url = reverse("search_titles")
+        self.user = User.objects.create_user(
+            username="TestUser", password="testpassword"
+        )
+        self.client.login(username="TestUser", password="testpassword")
+
+        PlayStationTitle.objects.create(
+            title_id="PPSA04312_00",
+            concept_id=10000689,
+            name="The Dungeon of Naheulbeuk: the Amulet of Chaos",
+            region="EP",
+        )
+
+        PlayStationTitle.objects.create(
+            title_id="PPSA05259_00", concept_id=231761, name="Diablo IV", region="EP"
+        )
+
+    def test_search_titles_view(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "games/components/search_titles.html")
+
+    def test_search_titles_post(self):
+        response = self.client.post(self.url, {"search": "naheulbeuk"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["titles"]), 1)
+
+
+class AddGameViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="TestUser", password="testpassword"
+        )
+        self.client.login(username="TestUser", password="testpassword")
+
+        PlayStationTitle.objects.create(
+            title_id="PPSA04312_00",
+            concept_id=10000689,
+            name="The Dungeon of Naheulbeuk: the Amulet of Chaos",
+            region="EP",
+        )
+
+        PlayStationTitle.objects.create(
+            title_id="PPSA05259_00", concept_id=231761, name="Diablo IV", region="EP"
+        )
+
+        Game.objects.create(owner=self.user, title="Diablo IV", psn_id=231761)
+
+    def test_add_game_view(self):
+        url = reverse("add_game", kwargs={"title_id": "PPSA04312_00"})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["title_id"], "PPSA04312_00")
+        self.assertTemplateUsed(response, "games/components/add_game.html")
+
+    def test_add_game_post(self):
+        url = reverse("add_game", kwargs={"title_id": "PPSA04312_00"})
+
+        first_games_count = Game.objects.filter(owner=self.user).count()
+
+        response = self.client.post(
+            url,
+            {
+                "title": "The Dungeon of Naheulbeuk: the Amulet of Chaos",
+                "ps4": True,
+                "ps5": True,
+                "status": "unp",
+                "ownership": "phy",
+            },
+        )
+
+        final_games_count = Game.objects.filter(owner=self.user).count()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("HX-Redirect", response.headers)
+        self.assertEqual(first_games_count, 1)
+        self.assertEqual(final_games_count, 2)
+
+    def test_add_game_already_in_library(self):
+        url = reverse("add_game", kwargs={"title_id": "PPSA05259_00"})
+
+        first_games_count = Game.objects.filter(owner=self.user).count()
+
+        response = self.client.post(
+            url,
+            {
+                "title": "Diablo IV",
+                "ps4": True,
+                "ps5": True,
+                "status": "unp",
+                "ownership": "phy",
+            },
+        )
+
+        final_games_count = Game.objects.filter(owner=self.user).count()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("HX-Redirect", response.headers)
+        self.assertFormError(
+            form=response.context["form"],
+            field=None,
+            errors=["Diablo IV is already in your library."],
+        )  # type: ignore
+        self.assertEqual(first_games_count, 1)
+        self.assertEqual(final_games_count, 1)

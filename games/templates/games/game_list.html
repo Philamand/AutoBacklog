@@ -31,6 +31,7 @@
       {% else %}
         <a href="/games/" class="btn"><i class="bi bi-x-square fs-5"></i></a>
       {% endif %}
+      <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-circle fs-5"></i></button>
       <button type="button" class="btn" hx-get="{% url 'refresh_game_list' %}" hx-target="#game-container"><i class="bi bi-arrow-clockwise fs-4"></i></button>
     </div>
     {% else %}
@@ -113,6 +114,10 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    {% include 'games/components/search_titles.html' %}
   </div>
   
   </div>

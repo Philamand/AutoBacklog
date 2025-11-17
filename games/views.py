@@ -1,5 +1,6 @@
 from typing import Any
 from django.http import HttpRequest, HttpResponse, QueryDict
+from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
@@ -9,7 +10,8 @@ from django.views.generic import ListView
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.shortcuts import redirect, render
-from .models import Game
+from .models import Game, PlayStationTitle
+from .forms import AddGameForm
 from .tasks import load_games, load_entitlements
 
 
@@ -395,3 +397,117 @@ class LibraryView(LoginRequiredMixin, ListView):
         ):
             return ["games/game_container.html"]
         return super().get_template_names()
+
+
+@login_required
+def search_titles(request: HttpRequest) -> HttpResponse:
+    """
+    Search for PlayStation titles matching a user-provided query.
+
+    This view handles both GET and POST requests. On a GET request it renders the
+    search form template ``games/components/search_titles.html``. On a POST
+    request it extracts the ``search`` term from the submitted form data,
+    filters ``PlayStationTitle`` objects whose ``name`` contains the term (case‑insensitive)
+    and belong to the ``EP`` region, orders the results by descending ``id``,
+    and returns the first five matches rendered with the template
+    ``games/components/search_titles_result.html``.
+
+    Args:
+        request (HttpRequest): The incoming HTTP request, expected to be a
+            ``POST`` with a ``search`` field or a ``GET`` to display the form.
+
+    Returns:
+        HttpResponse: Rendered HTML containing either the search form or the
+        top five matching titles.
+    """
+    if request.method == "POST":
+        search = request.POST.get("search")
+        titles = (
+            PlayStationTitle.objects.filter(name__icontains=search)
+            .filter(region="EP")
+            .order_by("-id")[:5]
+        )
+
+        return render(
+            request, "games/components/search_titles_result.html", {"titles": titles}
+        )
+
+    return render(request, "games/components/search_titles.html")
+
+
+@login_required
+def add_game(request: HttpRequest, title_id: str) -> HttpResponse:
+    """
+    Add a PlayStation title to the authenticated user's game library.
+
+    This view requires the user to be logged in. It retrieves a
+    ``PlayStationTitle`` instance identified by ``title_id``. For a ``GET``
+    request it determines whether the title belongs to the PS4 or PS5 platform
+    (based on the presence of ``"PPSA"`` in the identifier) and pre‑populates an
+    ``AddGameForm`` with the title name, platform flags, and a default ownership
+    value of ``"phy"``. The populated form is rendered using the template
+    ``games/components/add_game.html``.
+
+    For a ``POST`` request the submitted form data is validated. If the form is
+    valid, the view checks whether the user already owns a ``Game`` with the same
+    PlayStation Network identifier (``psn_id``). If the title is not already in the
+    library, a new ``Game`` instance is created (without committing immediately),
+    the current user is set as the owner, the ``psn_id`` is assigned from the
+    corresponding ``PlayStationTitle``'s ``concept_id``, and the instance is saved.
+    A successful addition triggers an ``HX-Redirect`` header pointing to ``/games/``
+    to navigate the user back to the games list.
+
+    If the title already exists in the user's library, a non-field error is added
+    to the form indicating the duplication, and the form is re-rendered for the
+    user to correct.
+
+    Args:
+        request (HttpRequest): The incoming request, either ``GET`` to display the
+            form or ``POST`` to process a submission.
+        title_id (str): The unique identifier of the ``PlayStationTitle`` to be
+            added.
+
+    Returns:
+        HttpResponse: Either the rendered ``add_game.html`` template with the form
+        (for ``GET`` or invalid submissions) or a response containing an
+        ``HX-Redirect`` header to ``/games/`` upon successful addition.
+    """
+    title = get_object_or_404(PlayStationTitle, title_id=title_id)
+
+    if request.method == "POST":
+        form = AddGameForm(request.POST)
+
+        if form.is_valid():
+            already_in_library = (
+                Game.objects.filter(owner=request.user)
+                .filter(psn_id=title.concept_id)
+                .count()
+            )
+            if already_in_library == 0:
+                new_game = form.save(commit=False)
+                new_game.owner = request.user
+                new_game.psn_id = title.concept_id
+                new_game.save()
+
+                response = HttpResponse()
+                response["HX-Redirect"] = "/games/"
+                return response
+            else:
+                form.add_error(None, f"{title.name} is already in your library.")
+
+    else:
+        ps4 = False
+        ps5 = False
+
+        if "PPSA" in title_id:
+            ps5 = True
+        else:
+            ps4 = True
+
+        form = AddGameForm(
+            initial={"title": title.name, "ps4": ps4, "ps5": ps5, "ownership": "phy"}
+        )
+
+    return render(
+        request, "games/components/add_game.html", {"form": form, "title_id": title_id}
+    )

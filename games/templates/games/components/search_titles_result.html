@@ -1,0 +1,5 @@
+<ul>
+    {% for title in titles %}
+        <li><a href="#" hx-get="/games/add_game/{{ title.title_id }}/" hx-target="#addModal">{{ title.name }} - {% if "PPSA" in title.title_id %}PS5{% else %}PS4{% endif %}</a></li>
+    {% endfor %}
+</ul>

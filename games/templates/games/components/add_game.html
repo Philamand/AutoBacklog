@@ -1,0 +1,19 @@
+{% load crispy_forms_tags %}
+<div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="addModalLabel">Add Game</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addGameForm" hx-post="/games/add_game/{{ title_id }}/" hx-target="#addModal">
+            {% csrf_token %}
+            {{ form|crispy }}
+        </form>
+        </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <button type="button" class="btn btn-danger" hx-get="/games/search_titles/" hx-target="#addModal">Discard</button>
+          <button type="submit" form="addGameForm" class="btn btn-primary">Add Game</button>
+        </div>
+      </div>
+    </div>
