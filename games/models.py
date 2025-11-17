@@ -7,7 +7,6 @@ STATUS = [
     ("bea", "Beaten"),
     ("com", "Completed"),
     ("end", "Endless"),
-    ("non", "None"),
 ]
 
 OWNERSHIPS = [
