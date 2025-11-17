@@ -214,7 +214,21 @@ def bulk_edit(request: HttpRequest) -> HttpResponse:
         HttpResponse: The HTTP response object after redirecting to the games page.
     """
     action = request.POST.get("action")
-    if action in ["shelf", "delete"]:
+    if action in [
+        "shelf",
+        "delete",
+        "unp",
+        "unf",
+        "bea",
+        "com",
+        "end",
+        "own",
+        "phy",
+        "psp",
+        "pgc",
+        "active",
+        "inactive",
+    ]:
         game_ids = []
         post_games = request.POST.getlist("games")
         if post_games:
@@ -224,12 +238,22 @@ def bulk_edit(request: HttpRequest) -> HttpResponse:
         games = Game.objects.filter(id__in=game_ids)
 
         for game in games:
-            if action == "shelf":
+            if action in ["unp", "unf", "bea", "com", "end"]:
+                game.status = action
+            elif action in ["own", "phy", "psp", "pgc"]:
+                game.ownership = action
+            elif action == "active":
+                game.active = True
+            elif action == "inactive":
+                game.active = False
+            elif action == "shelf":
                 game.shelved = not game.shelved
             else:
                 game.deleted = not game.deleted
 
-        Game.objects.bulk_update(games, ["shelved", "deleted"])
+        Game.objects.bulk_update(
+            games, ["status", "ownership", "active", "shelved", "deleted"]
+        )
 
     return redirect("/games/")
 

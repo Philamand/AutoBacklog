@@ -21,8 +21,27 @@
         Action:
       <select class="form-select mx-2" aria-label="Select action" name="action">
         <option selected value="">---------</option>
-        <option value="shelf">Shelf</option>
-        <option value="delete">Delete</option>
+        <optgroup label="Status">
+          <option value="unp">Unplayed</option>
+          <option value="unf">Unfinished</option>
+          <option value="bea">Beaten</option>
+          <option value="com">Completed</option>
+          <option value="end">Endless</option>
+        </optgroup>
+        <optgroup label="Ownership">
+          <option value="own">Digital</option>
+          <option value="phy">Physical</option>
+          <option value="psp">Monthly Game</option>
+          <option value="pgc">Game Catalog</option>
+        </optgroup>
+        <optgroup label="In Library">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </optgroup>
+        <optgroup label="Remove">
+          <option value="shelf">Shelve</option>
+          <option value="delete">Delete</option>
+        </optgroup>
       </select>
       <button type="submit" class="btn btn-secondary">Go</button>
       </div>
