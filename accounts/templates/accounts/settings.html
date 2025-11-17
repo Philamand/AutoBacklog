@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Settings{% endblock %}
 
@@ -16,7 +17,7 @@
         {% csrf_token %}
         <div class="mb-3">
           <label for="playstationUsername" class="form-label"><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#UsernameModal">PlayStation Username:<i class="bi bi-question-circle ms-2"></i></button></label>
-          <input type="text" class="form-control" id="playstationUsername" name="playstationUsername">
+          <input type="text" class="form-control" id="playstationUsername" name="playstationUsername" {% if playstation_username %}value="{{ playstation_username }}"{% endif %}>
         </div>
         <button type="submit" class="btn btn-primary">Sync with username</button>
       </form>
@@ -30,7 +31,7 @@
         <button type="submit" class="btn btn-primary">Sync with NPSSO</button>
       </form>
 
-      <form method="post" action="/accounts/upload_entitlements/" enctype="multipart/foU<i class="bi brm-data">
+      <form method="post" action="/accounts/upload_entitlements/" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
           <label for="formFile" class="form-label"><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#JsonModal">Sync with JSON file<i class="bi bi-question-circle ms-2"></i></button></label>
@@ -83,6 +84,9 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <video class="w-100" controls>
+          <source src="{% static 'assets/videos/getnpsso.mp4' %}" type="video/mp4" />
+        </video>
         <ul>
           <li>In your web browser, access <a href="https://store.playstation.com" target="_blank">https://store.playstation.com <i class="bi bi-box-arrow-up-right"></i></a> and log in with your PSN account.</li>
           <li>In the same browser, access <a href="https://ca.account.sony.com/api/v1/ssocookie" target="_blank">https://ca.account.sony.com/api/v1/ssocookie <i class="bi bi-box-arrow-up-right"></i></a></li>
@@ -107,7 +111,7 @@
       <div class="modal-body">
         <ul>
           <li>Get your NPSSO token by following the instructions above.</li>
-          <li>Download our <a href="" target="_blank">open-source python script</a>.</li>
+          <li>Download our <a href="https://github.com/Philamand/AutoBacklogLibraryImporter" target="_blank">open-source python script</a>.</li>
           <li>Follow the instruction from the README.</li>
           <li>Import the generated json file and click "Sync with json file".</li>
         </ul>
