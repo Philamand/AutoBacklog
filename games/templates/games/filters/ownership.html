@@ -4,7 +4,7 @@
         <button type="button" class="btn" hx-post="/games/filters/reset/" hx-target="#filtersOwnership" hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-vals='{"reset": "ownership"}'><i class="bi bi-arrow-clockwise"></i></button>
     </div>
     <input type="checkbox" class="btn-check" id="ownershipOwn" name="own" value="true" autocomplete="off" {% if "own" in filters.ownership %}checked{% endif %}>
-    <label class="btn" for="ownershipOwn">Owned</label>
+    <label class="btn" for="ownershipOwn">Digital</label>
     <input type="checkbox" class="btn-check" id="ownershipPhy" name="phy" value="true" autocomplete="off" {% if "phy" in filters.ownership %}checked{% endif %}>
     <label class="btn" for="ownershipPhy">Physical</label>
     <input type="checkbox" class="btn-check" id="ownershipSub" name="psp" value="true" autocomplete="off" {% if "psp" in filters.ownership %}checked{% endif %}>
