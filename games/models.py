@@ -13,7 +13,6 @@ STATUS = [
 OWNERSHIPS = [
     ("own", "Digital"),
     ("phy", "Physical"),
-    ("wis", "Wishlist"),
     ("psp", "PS+"),
     ("pgc", "Game Catalog"),
 ]
