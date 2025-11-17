@@ -12,7 +12,7 @@ from django.db.models.query import QuerySet
 from django.shortcuts import redirect, render
 from .models import Game, PlayStationTitle
 from .forms import AddGameForm
-from .tasks import load_games, load_entitlements
+from .tasks import load_games
 
 
 def dashboard(request: HttpRequest) -> HttpResponse:
