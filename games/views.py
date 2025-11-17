@@ -113,7 +113,7 @@ def reset_filters(request: HttpRequest) -> HttpResponse:
     filters = request.session.get(
         "filters",
         {
-            "status": ["unp", "unf", "bea", "com"],
+            "status": ["unp", "unf", "bea", "com", "end"],
             "platform": "all",
             "ownership": ["own", "phy", "psp", "pgc"],
             "active": "all",
@@ -121,7 +121,7 @@ def reset_filters(request: HttpRequest) -> HttpResponse:
     )
     reset = QueryDict(request.body).get("reset")
     if reset == "status":
-        filters["status"] = ["unp", "unf", "bea", "com"]
+        filters["status"] = ["unp", "unf", "bea", "com", "end"]
         request.session["filters"] = filters
         return render(request, "games/filters/status.html", {"filters": filters})
     elif reset == "platforms":
@@ -138,7 +138,7 @@ def reset_filters(request: HttpRequest) -> HttpResponse:
         return render(request, "games/filters/active.html", {"filters": filters})
 
     filters = {
-        "status": ["unp", "unf", "bea", "com"],
+        "status": ["unp", "unf", "bea", "com", "end"],
         "platform": "all",
         "ownership": ["own", "psp", "pgc"],
         "active": "all",
@@ -253,7 +253,7 @@ class LibraryView(LoginRequiredMixin, ListView):
         filters = self.request.session.get(
             "filters",
             {
-                "status": ["unp", "unf", "bea", "com"],
+                "status": ["unp", "unf", "bea", "com", "end"],
                 "platform": "all",
                 "ownership": ["own", "phy", "psp", "pgc"],
                 "active": "all",
@@ -275,6 +275,8 @@ class LibraryView(LoginRequiredMixin, ListView):
             status.append("bea")
         if self.request.GET.get("com"):
             status.append("com")
+        if self.request.GET.get("end"):
+            status.append("end")
 
         if status != []:
             filters["status"] = status

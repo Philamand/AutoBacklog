@@ -11,4 +11,6 @@
   <label class="btn" for="statusBea">Beaten</label>
   <input type="checkbox" class="btn-check" id="statusCom" name="com" value="true" autocomplete="off" {% if "com" in filters.status %}checked{% endif %}>
   <label class="btn" for="statusCom">Completed</label>
+  <input type="checkbox" class="btn-check" id="statusEnd" name="end" value="true" autocomplete="off" {% if "end" in filters.status %}checked{% endif %}>
+  <label class="btn" for="statusEnd">Endless</label>
 </div>

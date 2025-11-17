@@ -20,6 +20,8 @@
         {% endif %}
         {% if game.status == "unf" %}
           <i class="bi bi-controller fs-4 text-primary me-2"></i>
+        {% elif game.status == "end" %}
+          <i class="bi bi-infinity fs-4 text-primary me-2"></i>
         {% elif game.status == "bea" %}
           <i class="bi bi-check2 fs-4 text-success me-2"></i>
         {% elif game.status == "com" %}
