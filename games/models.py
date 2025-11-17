@@ -11,7 +11,7 @@ STATUS = [
 ]
 
 OWNERSHIPS = [
-    ("own", "Own"),
+    ("own", "Digital"),
     ("phy", "Physical"),
     ("wis", "Wishlist"),
     ("psp", "PS+"),
