@@ -1,7 +1,7 @@
 services:
   autobacklog:
     build: .
-    command: uv run gunicorn AutoBacklog.wsgi --bind 0.0.0.0:8000
+    command: uv run gunicorn AutoBacklog.wsgi --bind 0.0.0.0:8000 --workers 8
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
