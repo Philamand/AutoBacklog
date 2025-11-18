@@ -85,7 +85,7 @@
         <form hx-post="{% url 'update_game' game.id %}" hx-target="#game-{{game.id}}" hx-swap="outerHTML">
           {% csrf_token %}
           <input type="hidden" id="id_title" name="title" value="{{ game.title }}" />
-          <input type="hidden" id="id_status" name="status" value="bea" />
+          <input type="hidden" id="id_status" name="status" value="unf" />
           <input type="hidden" id="id_ownership" name="ownership" value="{{ game.ownership }}" />
           <input type="hidden" id="id_active" name="active" value="{{ game.active }}" />
           <button type="submit" class="btn btn-outline-primary">Mark as unfinished</button>
