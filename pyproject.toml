@@ -3,10 +3,10 @@ name = "autobacklog"
 version = "0.1.0"
 description = "A Backlog app that automatically import your PSN library"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "crispy-bootstrap5>=2025.6",
-    "django>=4.2.21",
+    "django>=5.2",
     "django-allauth[socialaccount]>=65.9.0",
     "django-crispy-forms>=2.5",
     "django-dramatiq>=0.13.0",
