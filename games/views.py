@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView, UpdateView
 from django.db.models import F
 from django.db.models.query import QuerySet
 from django.shortcuts import redirect, render
@@ -100,6 +100,18 @@ def update_game(request, game_id):
         game.save()
         return render(request, "games/components/game_card.html", {"game": game})
     return HttpResponse(status=400)
+
+
+class GameDetailView(DetailView):
+    model = Game
+    template_name = "games/components/game_card.html"
+    context_object_name = "game"
+
+
+class GameUpdateView(UpdateView):
+    model = Game
+    fields = ["title", "ps4", "ps5", "status", "ownership", "active"]
+    template_name = "games/game_update_form.html"
 
 
 @login_required

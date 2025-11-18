@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.urls import reverse
 
 STATUS = [
     ("unp", "Unplayed"),
@@ -50,6 +51,9 @@ class Game(models.Model):
     active = models.BooleanField(default=True)
     shelved = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
+
+    def get_absolute_url(self) -> str:
+        return reverse("game_detail", kwargs={"pk": self.pk})
 
     def __str__(self) -> str:
         return self.title

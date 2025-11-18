@@ -1,0 +1,5 @@
+{% load crispy_forms_tags %}
+<form id="updateGameForm" hx-post="/games/{{ object.id }}/update/" hx-target="#game-{{object.id}}" hx-swap="outerHTML">
+    {% csrf_token %}
+    {{ form|crispy }}
+</form>
