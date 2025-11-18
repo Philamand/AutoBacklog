@@ -100,6 +100,204 @@ class DashboardViewTests(TestCase):
         )
 
 
+class GameDetailViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="TestUser", password="testpassword"
+        )
+        self.user2 = User.objects.create_user(
+            username="TestUser2", password="testpassword2"
+        )
+
+        games = [
+            Game(
+                owner=self.user,
+                title="God of War Ragnarök",
+                ps4=True,
+                ps5=True,
+                status="unf",
+                ownership="psp",
+                first_played=timezone.now(),
+                last_played=timezone.now(),
+                playtime=600,
+            ),
+            Game(
+                owner=self.user,
+                title="Warhammer 40,000: Boltgun",
+                ps4=True,
+                ps5=True,
+                status="unf",
+                ownership="psp",
+                first_played=timezone.now(),
+                last_played=timezone.now(),
+                playtime=600,
+            ),
+            Game(
+                owner=self.user,
+                title="Prince Of Persia: The Lost Crown",
+                ps4=True,
+                ps5=True,
+                status="unf",
+                ownership="psp",
+                first_played=timezone.now(),
+                last_played=timezone.now(),
+                playtime=600,
+                shelved=True,
+            ),
+        ]
+
+        Game.objects.bulk_create(games)
+
+        self.usergame = Game(
+            owner=self.user,
+            title="CRISIS CORE –FINAL FANTASY VII– REUNION",
+            ps4=True,
+            ps5=True,
+            status="unf",
+            ownership="psp",
+            first_played=timezone.now(),
+            last_played=timezone.now(),
+            playtime=600,
+        )
+
+        self.usergame.save()
+
+        self.user2game = Game(
+            owner=self.user2,
+            title="CRISIS CORE –FINAL FANTASY VII– REUNION",
+            ps4=True,
+            ps5=True,
+            status="unf",
+            ownership="psp",
+            first_played=timezone.now(),
+            last_played=timezone.now(),
+            playtime=600,
+        )
+
+        self.user2game.save()
+
+        self.client.login(username="TestUser", password="testpassword")
+
+    def test_unauthorized(self):
+        url = reverse("game_detail", kwargs={"pk": self.user2game.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_authorized(self):
+        url = reverse("game_detail", kwargs={"pk": self.usergame.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+
+class GameUpdateViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="TestUser", password="testpassword"
+        )
+        self.user2 = User.objects.create_user(
+            username="TestUser2", password="testpassword2"
+        )
+
+        games = [
+            Game(
+                owner=self.user,
+                title="God of War Ragnarök",
+                ps4=True,
+                ps5=True,
+                status="unf",
+                ownership="psp",
+                first_played=timezone.now(),
+                last_played=timezone.now(),
+                playtime=600,
+            ),
+            Game(
+                owner=self.user,
+                title="Warhammer 40,000: Boltgun",
+                ps4=True,
+                ps5=True,
+                status="unf",
+                ownership="psp",
+                first_played=timezone.now(),
+                last_played=timezone.now(),
+                playtime=600,
+            ),
+            Game(
+                owner=self.user,
+                title="Prince Of Persia: The Lost Crown",
+                ps4=True,
+                ps5=True,
+                status="unf",
+                ownership="psp",
+                first_played=timezone.now(),
+                last_played=timezone.now(),
+                playtime=600,
+                shelved=True,
+            ),
+        ]
+
+        Game.objects.bulk_create(games)
+
+        self.usergame = Game(
+            owner=self.user,
+            title="CRISIS CORE –FINAL FANTASY VII– REUNION",
+            ps4=True,
+            ps5=True,
+            status="unf",
+            ownership="psp",
+            first_played=timezone.now(),
+            last_played=timezone.now(),
+            playtime=600,
+        )
+
+        self.usergame.save()
+
+        self.user2game = Game(
+            owner=self.user2,
+            title="CRISIS CORE –FINAL FANTASY VII– REUNION",
+            ps4=True,
+            ps5=True,
+            status="unf",
+            ownership="psp",
+            first_played=timezone.now(),
+            last_played=timezone.now(),
+            playtime=600,
+        )
+
+        self.user2game.save()
+
+        self.client.login(username="TestUser", password="testpassword")
+
+    def test_unauthorized(self):
+        url = reverse("update_game", kwargs={"pk": self.user2game.id})
+        response = self.client.post(
+            url,
+            {
+                "title": "CRISIS CORE –FINAL FANTASY VII– REUNION",
+                "ps4": True,
+                "ps5": True,
+                "status": "bea",
+                "ownership": "psp",
+                "active": True,
+            },
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_authorized(self):
+        url = reverse("update_game", kwargs={"pk": self.usergame.id})
+        response = self.client.post(
+            url,
+            {
+                "title": "CRISIS CORE –FINAL FANTASY VII– REUNION",
+                "ps4": True,
+                "ps5": True,
+                "status": "bea",
+                "ownership": "psp",
+                "active": True,
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+
+
 class RemoveGameViewTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

@@ -1,4 +1,5 @@
 from typing import Any
+from django.db.models.base import Model as Model
 from django.http import HttpRequest, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
@@ -93,16 +94,32 @@ def remove_game(request: HttpRequest, pk: int) -> HttpResponse:
     return HttpResponse(status=400)
 
 
-class GameDetailView(DetailView):
+class GameDetailView(LoginRequiredMixin, DetailView):
     model = Game
     template_name = "games/components/game_card.html"
     context_object_name = "game"
 
+    def dispatch(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        obj = self.get_object()
 
-class GameUpdateView(UpdateView):
+        if obj.owner != request.user:
+            return HttpResponse(status=403)
+
+        return super().dispatch(request, *args, **kwargs)
+
+
+class GameUpdateView(LoginRequiredMixin, UpdateView):
     model = Game
     fields = ["title", "ps4", "ps5", "status", "ownership", "active"]
     template_name = "games/game_update_form.html"
+
+    def dispatch(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        obj = self.get_object()
+
+        if obj.owner != request.user:
+            return HttpResponse(status=403)
+
+        return super().dispatch(request, *args, **kwargs)
 
 
 @login_required
