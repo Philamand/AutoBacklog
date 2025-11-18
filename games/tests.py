@@ -100,7 +100,7 @@ class DashboardViewTests(TestCase):
         )
 
 
-class UpdateGameViewTests(TestCase):
+class RemoveGameViewTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username="TestUser", password="testpassword"
@@ -179,12 +179,12 @@ class UpdateGameViewTests(TestCase):
         self.client.login(username="TestUser", password="testpassword")
 
     def test_unauthorized(self):
-        url = reverse("update_game", kwargs={"game_id": self.user2game.id})
+        url = reverse("remove_game", kwargs={"pk": self.user2game.id})
         response = self.client.patch(url, "action=shelf")
         self.assertEqual(response.status_code, 403)
 
     def test_authorized_shelf(self):
-        url = reverse("update_game", kwargs={"game_id": self.usergame.id})
+        url = reverse("remove_game", kwargs={"pk": self.usergame.id})
         self.assertEqual(self.usergame.shelved, False)
         response = self.client.patch(
             url,
@@ -194,19 +194,8 @@ class UpdateGameViewTests(TestCase):
         game = Game.objects.get(id=self.usergame.id)
         self.assertEqual(game.shelved, True)
 
-    def test_authorized_beat(self):
-        url = reverse("update_game", kwargs={"game_id": self.usergame.id})
-        self.assertNotEqual(self.usergame.status, "bea")
-        response = self.client.patch(
-            url,
-            "action=beat",
-        )
-        self.assertEqual(response.status_code, 200)
-        game = Game.objects.get(id=self.usergame.id)
-        self.assertEqual(game.status, "bea")
-
     def test_authorized_delete(self):
-        url = reverse("update_game", kwargs={"game_id": self.usergame.id})
+        url = reverse("remove_game", kwargs={"pk": self.usergame.id})
         self.assertEqual(self.usergame.deleted, False)
         response = self.client.patch(
             url,
@@ -217,10 +206,10 @@ class UpdateGameViewTests(TestCase):
         self.assertEqual(game.deleted, True)
 
     def test_bad_request(self):
-        url = reverse("update_game", kwargs={"game_id": self.user2game.id + 1000})
+        url = reverse("remove_game", kwargs={"pk": self.usergame.id})
         response = self.client.patch(
             url,
-            "action=shelf",
+            "action=shnefl",
         )
         self.assertEqual(response.status_code, 400)
 

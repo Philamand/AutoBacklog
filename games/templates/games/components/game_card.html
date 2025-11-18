@@ -71,16 +71,30 @@
         </div>
         <div class="d-flex justify-content-between">
         <div class="d-flex flex-wrap justify-content-start">
-          <button type="button" class="btn btn-outline-primary mb-2 mb-sm-0 me-2" data-bs-toggle="modal" data-bs-target="#updateModal" hx-get="/games/{{ game.id }}/update/" hx-target="#updateModalBody">Update</button>
+          <button type="button" class="btn btn-outline-secondary mb-2 mb-sm-0 me-2" data-bs-toggle="modal" data-bs-target="#updateModal" hx-get="/games/{{ game.id }}/update/" hx-target="#updateModalBody">Update</button>
         {% if game.status == 'unp' or game.status == 'unf' %}
-        <button type="button" class="btn btn-outline-success" hx-patch="/games/{{ game.id }}" hx-target="#game-{{game.id}}" hx-swap="outerHTML" hx-vals='{"action": "beat"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>Mark as finished</button>
+        <form hx-post="{% url 'update_game' game.id %}" hx-target="#game-{{game.id}}" hx-swap="outerHTML">
+          {% csrf_token %}
+          <input type="hidden" id="id_title" name="title" value="{{ game.title }}" />
+          <input type="hidden" id="id_status" name="status" value="bea" />
+          <input type="hidden" id="id_ownership" name="ownership" value="{{ game.ownership }}" />
+          <input type="hidden" id="id_active" name="active" value="{{ game.active }}" />
+          <button type="submit" class="btn btn-outline-success">Mark as finished</button>
+        </form>
         {% elif game.status == 'bea' %}
-        <button type="button" class="btn btn-outline-primary" hx-patch="/games/{{ game.id }}" hx-target="#game-{{game.id}}" hx-swap="outerHTML" hx-vals='{"action": "unfinished"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>Mark as unfinished</button>
+        <form hx-post="{% url 'update_game' game.id %}" hx-target="#game-{{game.id}}" hx-swap="outerHTML">
+          {% csrf_token %}
+          <input type="hidden" id="id_title" name="title" value="{{ game.title }}" />
+          <input type="hidden" id="id_status" name="status" value="bea" />
+          <input type="hidden" id="id_ownership" name="ownership" value="{{ game.ownership }}" />
+          <input type="hidden" id="id_active" name="active" value="{{ game.active }}" />
+          <button type="submit" class="btn btn-outline-primary">Mark as unfinished</button>
+        </form>
         {% endif %}
         </div>
         <div class="d-flex flex-wrap justify-content-end">
-        <button type="button" class="btn btn-outline-warning mb-2 mb-sm-0" hx-patch="/games/{{ game.id }}" hx-swap="delete" hx-target="#game-{{game.id}}" hx-vals='{"action": "shelf"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>{% if shelf %}Unshelve{% else %}Shelve{% endif %} Game</button>
-        <button type="button" class="btn btn-outline-danger ms-0 ms-sm-2" hx-patch="/games/{{ game.id }}" hx-swap="delete" hx-target="#game-{{game.id}}" hx-vals='{"action": "delete"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-confirm='Are you sure you want to delete "{{game.title}}" ?'>Delete Game</button>
+        <button type="button" class="btn btn-outline-warning mb-2 mb-sm-0" hx-patch="{% url 'remove_game' game.id %}" hx-swap="delete" hx-target="#game-{{game.id}}" hx-vals='{"action": "shelf"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>{% if shelf %}Unshelve{% else %}Shelve{% endif %} Game</button>
+        <button type="button" class="btn btn-outline-danger ms-0 ms-sm-2" hx-patch="{% url 'remove_game' game.id %}" hx-swap="delete" hx-target="#game-{{game.id}}" hx-vals='{"action": "delete"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-confirm='Are you sure you want to delete "{{game.title}}" ?'>Delete Game</button>
       </div>  
       </div>
       </div>

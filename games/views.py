@@ -65,7 +65,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 
 @login_required
 @require_http_methods(["PATCH"])
-def update_game(request, game_id):
+def remove_game(request: HttpRequest, pk: int) -> HttpResponse:
     """
     Updates the game's priority or status based on the action specified in the request.
     Requires the game to be owned by the requesting user.
@@ -76,12 +76,11 @@ def update_game(request, game_id):
     Returns a 403 status code if the user is not the owner of the game,
     or a 400 status code for an invalid action.
     """
-    try:
-        game = Game.objects.get(id=game_id)
-    except Game.DoesNotExist:
-        return HttpResponse(status=400)
+    game = get_object_or_404(Game, pk=pk)
+
     if game.owner != request.user:
         return HttpResponse(status=403)
+
     action = QueryDict(request.body).get("action")
     if action == "shelf":
         game.shelved = not game.shelved
@@ -91,14 +90,6 @@ def update_game(request, game_id):
         game.deleted = not game.deleted
         game.save()
         return HttpResponse(status=200)
-    elif action == "beat":
-        game.status = "bea"
-        game.save()
-        return render(request, "games/components/game_card.html", {"game": game})
-    elif action == "unfinished":
-        game.status = "unf"
-        game.save()
-        return render(request, "games/components/game_card.html", {"game": game})
     return HttpResponse(status=400)
 
 
