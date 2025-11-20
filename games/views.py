@@ -492,6 +492,11 @@ def search_titles(request: HttpRequest) -> HttpResponse:
             .order_by("-id")[:5]
         )
 
+        if len(titles) == 0:
+            titles = PlayStationTitle.objects.filter(name__icontains=search).order_by(
+                "-id"
+            )[:5]
+
         return render(
             request, "games/components/search_titles_result.html", {"titles": titles}
         )
