@@ -51,6 +51,7 @@ class Game(models.Model):
     active = models.BooleanField(default=True)
     shelved = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
+    track = models.BooleanField(default=True)
 
     def get_absolute_url(self) -> str:
         return reverse("game_detail", kwargs={"pk": self.pk})

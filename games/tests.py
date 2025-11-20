@@ -284,6 +284,9 @@ class GameUpdateViewTests(TestCase):
 
     def test_authorized(self):
         url = reverse("update_game", kwargs={"pk": self.usergame.id})
+        game = Game.objects.get(pk=self.usergame.id)
+        initial_track = game.track
+
         response = self.client.post(
             url,
             {
@@ -295,7 +298,13 @@ class GameUpdateViewTests(TestCase):
                 "active": True,
             },
         )
+
+        game = Game.objects.get(pk=self.usergame.id)
+        final_track = game.track
+
         self.assertEqual(response.status_code, 302)
+        self.assertTrue(initial_track)
+        self.assertFalse(final_track)
 
 
 class RemoveGameViewTests(TestCase):

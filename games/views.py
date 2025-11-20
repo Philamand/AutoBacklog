@@ -1,5 +1,6 @@
 from typing import Any
 from django.db.models.base import Model as Model
+from django.forms import BaseModelForm
 from django.http import HttpRequest, HttpResponse, QueryDict
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
@@ -120,6 +121,10 @@ class GameUpdateView(LoginRequiredMixin, UpdateView):
             return HttpResponse(status=403)
 
         return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form: BaseModelForm) -> HttpResponse:
+        form.instance.track = False
+        return super().form_valid(form)
 
 
 @login_required

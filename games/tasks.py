@@ -395,14 +395,21 @@ async def load_entitlements(entitlement_id: int) -> None:
                     update_games[entitlement.conceptMeta.conceptId].ps4 = True
                 else:
                     update_games[entitlement.conceptMeta.conceptId].ps5 = True
-                if entitlement.rewardMeta.retentionPolicy == 4:
+                if (
+                    entitlement.rewardMeta.retentionPolicy == 4
+                    and update_games[entitlement.conceptMeta.conceptId].track
+                ):
                     update_games[entitlement.conceptMeta.conceptId].ownership = "psp"
-                elif entitlement.rewardMeta.retentionPolicy == 5:
+                elif (
+                    entitlement.rewardMeta.retentionPolicy == 5
+                    and update_games[entitlement.conceptMeta.conceptId].track
+                ):
                     update_games[entitlement.conceptMeta.conceptId].ownership = "pgc"
 
     async for user_game in Game.objects.filter(owner=entitlement_upload.user):
         if (
             user_game.psn_id
+            and user_game.track
             and user_game.psn_id not in update_games.keys()
             and user_game.psn_id not in create_games.keys()
         ):
@@ -612,10 +619,11 @@ async def load_games(
                                 update_games[game.psn_id].playtime += int(
                                     game_stat.playDuration.total_seconds() / 60  # type: ignore
                                 )
-                                if game_stat.service == "ps_plus":
-                                    update_games[game.psn_id].ownership = "psp"
-                                if update_games[game.psn_id].status == "unp":
-                                    update_games[game.psn_id].status = "unf"
+                                if game.track:
+                                    if game_stat.service == "ps_plus":
+                                        update_games[game.psn_id].ownership = "psp"
+                                    if update_games[game.psn_id].status == "unp":
+                                        update_games[game.psn_id].status = "unf"
                             else:
                                 game.playtime = int(
                                     game_stat.playDuration.total_seconds() / 60  # type: ignore
@@ -631,10 +639,11 @@ async def load_games(
                                     and game_stat.lastPlayedDateTime > game.last_played
                                 ):
                                     game.last_played = game_stat.lastPlayedDateTime
-                                if game_stat.service == "ps_plus":
-                                    game.ownership = "psp"
-                                if game.status == "unp":
-                                    game.status = "unf"
+                                if game.track:
+                                    if game_stat.service == "ps_plus":
+                                        game.ownership = "psp"
+                                    if game.status == "unp":
+                                        game.status = "unf"
                                 update_games[game.psn_id] = game
                         except Game.DoesNotExist:
                             service = "own"
@@ -738,6 +747,9 @@ async def load_games(
                                     elif (
                                         playstation_title.concept_id
                                         in update_games.keys()
+                                        and update_games[
+                                            playstation_title.concept_id
+                                        ].track
                                     ):
                                         update_games[
                                             playstation_title.concept_id
@@ -765,6 +777,9 @@ async def load_games(
                                             playstation_title.concept_id
                                         ].status
                                         != "com"
+                                        and update_games[
+                                            playstation_title.concept_id
+                                        ].track
                                     ):
                                         update_games[
                                             playstation_title.concept_id
