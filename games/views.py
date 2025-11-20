@@ -92,6 +92,10 @@ def remove_game(request: HttpRequest, pk: int) -> HttpResponse:
         game.deleted = not game.deleted
         game.save()
         return HttpResponse(status=200)
+    elif action == "track":
+        game.track = not game.track
+        game.save()
+        return HttpResponse(status=200)
     return HttpResponse(status=400)
 
 

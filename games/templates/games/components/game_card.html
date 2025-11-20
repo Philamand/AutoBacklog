@@ -46,8 +46,12 @@
     <div class="card-body collapse" id="collapse-{{ game.id }}">
       <div class="card-text">
         <div class="row">
-          <div class="col-12 d-flex justify-content-between justify-content-sm-start mb-2">
-            <a href="https://store.playstation.com/en-us/concept/{{ game.psn_id }}" target="_blank"><i class="bi bi-box-arrow-up-right me-2"></i>View on Playsation Store</a>
+          <div class="col-12 d-flex flex-column flex-sm-row justify-content-between mb-2">
+            <a href="https://store.playstation.com/en-us/concept/{{ game.psn_id }}" target="_blank" class="mb-2 mb-sm-0"><i class="bi bi-box-arrow-up-right me-2"></i>View on Playsation Store</a>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="trackSwitch" {% if game.track %}checked{% endif %} hx-patch="{% url 'remove_game' game.id %}" hx-swap="none" hx-vals='{"action": "track"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+              <label class="form-check-label" for="trackSwitch">Tracked</label>
+            </div>
           </div>
           {% if not game.first_played %}
           <div class="col-12 d-flex justify-content-between justify-content-sm-start">
