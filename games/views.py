@@ -38,6 +38,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
       'index.html' if the user is not authenticated.
     """
     if request.user.is_authenticated:
+        request.session["wishlist"] = False
         base_query = (
             Game.objects.filter(owner=request.user)
             .exclude(ownership="wis")
@@ -432,8 +433,11 @@ class LibraryView(LoginRequiredMixin, ListView):
 
         if self.kwargs.get("view") == "shelf":
             context["shelf"] = True
-        elif self.kwargs.get("view") == "wishlist":
+        if self.kwargs.get("view") == "wishlist":
             context["wishlist"] = True
+            self.request.session["wishlist"] = True
+        else:
+            self.request.session["wishlist"] = False
 
         if self.kwargs.get("view") == "edit":
             context["edit"] = True
@@ -573,8 +577,17 @@ def add_game(request: HttpRequest, title_id: str) -> HttpResponse:
         else:
             ps4 = True
 
+        ownership = "phy"
+        if request.session.get("wishlist", False):
+            ownership = "wis"
+
         form = AddGameForm(
-            initial={"title": title.name, "ps4": ps4, "ps5": ps5, "ownership": "phy"}
+            initial={
+                "title": title.name,
+                "ps4": ps4,
+                "ps5": ps5,
+                "ownership": ownership,
+            }
         )
 
     return render(
