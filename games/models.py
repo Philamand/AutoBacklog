@@ -85,15 +85,6 @@ class GameTrophy(models.Model):
         return self.name
 
 
-class TitleId(models.Model):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    title_id = models.CharField(max_length=255)
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.owner} - {self.game}"
-
-
 class PlayStationTitle(models.Model):
     title_id = models.CharField(max_length=50, unique=True)
     concept_id = models.IntegerField(blank=True, null=True)
