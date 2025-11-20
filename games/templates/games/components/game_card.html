@@ -46,19 +46,21 @@
     <div class="card-body collapse" id="collapse-{{ game.id }}">
       <div class="card-text">
         <div class="row">
-          <div class="col-12 d-flex flex-column flex-sm-row justify-content-between mb-2">
-            <a href="https://store.playstation.com/en-us/concept/{{ game.psn_id }}" target="_blank" class="mb-2 mb-sm-0"><i class="bi bi-box-arrow-up-right me-2"></i>View on Playsation Store</a>
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" role="switch" id="trackSwitch" {% if game.track %}checked{% endif %} hx-patch="{% url 'remove_game' game.id %}" hx-swap="none" hx-vals='{"action": "track"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-              <label class="form-check-label" for="trackSwitch">Tracked</label>
+          <div class="col-12 d-flex flex-column flex-sm-row justify-content-{% if not wishlist %}between {% else %}start {% endif %} mb-2">
+            <a href="https://store.playstation.com/en-us/concept/{{ game.psn_id }}" target="_blank" class="{% if not wishlist %}mb-2 mb-sm-0{% endif %}"><i class="bi bi-box-arrow-up-right me-2"></i>View on Playsation Store</a>
+            {% if not wishlist %}
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="trackSwitch" {% if game.track %}checked{% endif %} hx-patch="{% url 'remove_game' game.id %}" hx-swap="none" hx-vals='{"action": "track"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                <label class="form-check-label" for="trackSwitch">Tracked</label>
+              </div>
+            {% endif %}
+          </div>
+          {% if not game.first_played and not wishlist %}
+            <div class="col-12 d-flex justify-content-between justify-content-sm-start">
+              <p class="me-2">Bought:</p>
+              <p>{{ game.active_date|date }}</p>
             </div>
-          </div>
-          {% if not game.first_played %}
-          <div class="col-12 d-flex justify-content-between justify-content-sm-start">
-            <p class="me-2">Bought:</p>
-            <p>{{ game.active_date|date }}</p>
-          </div>
-          {% else %}
+          {% elif not wishlist %}
           <div class="col-12 col-sm-6 col-md-4 d-flex justify-content-between justify-content-sm-start">
             <p class="me-2">First Played:</p>
             <p>{{ game.first_played|date }}</p>
@@ -76,7 +78,16 @@
         <div class="d-flex justify-content-between">
         <div class="d-flex flex-wrap justify-content-start">
           <button type="button" class="btn btn-outline-secondary mb-2 mb-sm-0 me-2" data-bs-toggle="modal" data-bs-target="#updateModal" hx-get="/games/{{ game.id }}/update/" hx-target="#updateModalBody">Update</button>
-        {% if game.status == 'unp' or game.status == 'unf' %}
+        {% if wishlist %}
+        <form hx-post="{% url 'update_game' game.id %}" hx-target="#game-{{game.id}}" hx-swap="delete">
+          {% csrf_token %}
+          <input type="hidden" id="id_title" name="title" value="{{ game.title }}" />
+          <input type="hidden" id="id_status" name="status" value="unf" />
+          <input type="hidden" id="id_ownership" name="ownership" value="own" />
+          <input type="hidden" id="id_active" name="active" value="{{ game.active }}" />
+          <button type="submit" class="btn btn-outline-primary">Mark as owned</button>
+        </form>
+        {% elif game.status == 'unp' or game.status == 'unf' %}
         <form hx-post="{% url 'update_game' game.id %}" hx-target="#game-{{game.id}}" hx-swap="outerHTML">
           {% csrf_token %}
           <input type="hidden" id="id_title" name="title" value="{{ game.title }}" />
@@ -96,9 +107,11 @@
         </form>
         {% endif %}
         </div>
-        <div class="d-flex flex-wrap justify-content-end">
-        <button type="button" class="btn btn-outline-warning mb-2 mb-sm-0" hx-patch="{% url 'remove_game' game.id %}" hx-swap="delete" hx-target="#game-{{game.id}}" hx-vals='{"action": "shelf"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>{% if shelf %}Unshelve{% else %}Shelve{% endif %} Game</button>
-        <button type="button" class="btn btn-outline-danger ms-0 ms-sm-2" hx-patch="{% url 'remove_game' game.id %}" hx-swap="delete" hx-target="#game-{{game.id}}" hx-vals='{"action": "delete"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-confirm='Are you sure you want to delete "{{game.title}}" ?'>Delete Game</button>
+        {% if not wishlist %}
+          <div class="d-flex flex-wrap justify-content-end">
+          <button type="button" class="btn btn-outline-warning mb-2 mb-sm-0" hx-patch="{% url 'remove_game' game.id %}" hx-swap="delete" hx-target="#game-{{game.id}}" hx-vals='{"action": "shelf"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>{% if shelf %}Unshelve{% else %}Shelve{% endif %} Game</button>
+          <button type="button" class="btn btn-outline-danger ms-0 ms-sm-2" hx-patch="{% url 'remove_game' game.id %}" hx-swap="delete" hx-target="#game-{{game.id}}" hx-vals='{"action": "delete"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-confirm='Are you sure you want to delete "{{game.title}}" ?'>Delete Game</button>
+        {% endif %}
       </div>  
       </div>
       </div>

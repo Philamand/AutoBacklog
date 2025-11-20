@@ -40,6 +40,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         base_query = (
             Game.objects.filter(owner=request.user)
+            .exclude(ownership="wis")
             .exclude(shelved=True)
             .exclude(deleted=True)
         )
@@ -127,7 +128,9 @@ class GameUpdateView(LoginRequiredMixin, UpdateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form: BaseModelForm) -> HttpResponse:
-        form.instance.track = False
+        game = self.get_object()
+        if game.ownership != "wis":
+            form.instance.track = False
         return super().form_valid(form)
 
 
@@ -393,7 +396,11 @@ class LibraryView(LoginRequiredMixin, ListView):
             games = games.filter(shelved=False)
 
         games = games.filter(status__in=filters["status"])
-        games = games.filter(ownership__in=filters["ownership"])
+
+        if self.kwargs.get("view") == "wishlist":
+            games = games.filter(ownership="wis")
+        else:
+            games = games.filter(ownership__in=filters["ownership"])
 
         if filters["platform"] in ["ps4", "ps5", "ps4o", "ps5o"]:
             if filters["platform"] == "ps5":
@@ -425,6 +432,8 @@ class LibraryView(LoginRequiredMixin, ListView):
 
         if self.kwargs.get("view") == "shelf":
             context["shelf"] = True
+        elif self.kwargs.get("view") == "wishlist":
+            context["wishlist"] = True
 
         if self.kwargs.get("view") == "edit":
             context["edit"] = True

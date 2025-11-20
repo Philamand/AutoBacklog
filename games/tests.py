@@ -251,6 +251,20 @@ class GameUpdateViewTests(TestCase):
 
         self.usergame.save()
 
+        self.usergameWish = Game(
+            owner=self.user,
+            title="CRISIS CORE –FINAL FANTASY VII– REUNION",
+            ps4=True,
+            ps5=True,
+            status="unp",
+            ownership="wis",
+            first_played=timezone.now(),
+            last_played=timezone.now(),
+            playtime=600,
+        )
+
+        self.usergameWish.save()
+
         self.user2game = Game(
             owner=self.user2,
             title="CRISIS CORE –FINAL FANTASY VII– REUNION",
@@ -305,6 +319,30 @@ class GameUpdateViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(initial_track)
         self.assertFalse(final_track)
+
+    def test_authorized_wishlist(self):
+        url = reverse("update_game", kwargs={"pk": self.usergameWish.id})
+        game = Game.objects.get(pk=self.usergameWish.id)
+        initial_track = game.track
+
+        response = self.client.post(
+            url,
+            {
+                "title": "CRISIS CORE –FINAL FANTASY VII– REUNION",
+                "ps4": True,
+                "ps5": True,
+                "status": "unp",
+                "ownership": "own",
+                "active": True,
+            },
+        )
+
+        game = Game.objects.get(pk=self.usergameWish.id)
+        final_track = game.track
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(initial_track)
+        self.assertTrue(final_track)
 
 
 class RemoveGameViewTests(TestCase):

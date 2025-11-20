@@ -6,6 +6,9 @@
       <a class="nav-link {% if tab_page == 'library' %}active{% endif %}" {% if tab_page == 'library' %}aria-current="page"{% endif %} href="{% url 'games' %}">Library</a>
     </li>
     <li class="nav-item">
+      <a class="nav-link {% if tab_page == 'wishlist' %}active{% endif %}" {% if tab_page == 'wishlist' %}aria-current="page"{% endif %} href="{% url 'games' %}wishlist/">Wishlist</a>
+    </li>
+    <li class="nav-item">
         <a class="nav-link {% if tab_page == 'shelf' %}active{% endif %}" {% if tab_page == 'shelf' %}aria-current="page"{% endif %} href="{% url 'games' %}shelf/">Shelf</a>
       </li>
   </ul>

@@ -12,6 +12,8 @@
 <div class="container">  
 {% if shelf %}
 {% include 'games/components/nav_tabs.html' with tab_page='shelf' %}
+{% elif wishlist %}
+{% include 'games/components/nav_tabs.html' with tab_page='wishlist' %}
 {% else %}
 {% include 'games/components/nav_tabs.html' with tab_page='library' %}
 {% endif %}

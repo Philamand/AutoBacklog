@@ -15,6 +15,7 @@ OWNERSHIPS = [
     ("phy", "Physical"),
     ("psp", "PS+"),
     ("pgc", "Game Catalog"),
+    ("wis", "Wishlist"),
 ]
 
 
