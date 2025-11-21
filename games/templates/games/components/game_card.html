@@ -111,8 +111,8 @@
           <div class="d-flex flex-wrap justify-content-end">
           <button type="button" class="btn btn-outline-warning mb-2 mb-sm-0" hx-patch="{% url 'remove_game' game.id %}" hx-swap="delete" hx-target="#game-{{game.id}}" hx-vals='{"action": "shelf"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>{% if shelf %}Unshelve{% else %}Shelve{% endif %} Game</button>
           <button type="button" class="btn btn-outline-danger ms-0 ms-sm-2" hx-patch="{% url 'remove_game' game.id %}" hx-swap="delete" hx-target="#game-{{game.id}}" hx-vals='{"action": "delete"}' hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-confirm='Are you sure you want to delete "{{game.title}}" ?'>Delete Game</button>
-        {% endif %}
       </div>  
+      {% endif %}
       </div>
       </div>
     </div>
