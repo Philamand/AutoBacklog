@@ -398,7 +398,7 @@ class LibraryView(LoginRequiredMixin, ListView):
 
         games = games.filter(status__in=filters["status"])
 
-        if self.kwargs.get("view") == "wishlist":
+        if self.request.session.get("wishlist", False):
             games = games.filter(ownership="wis")
         else:
             games = games.filter(ownership__in=filters["ownership"])
