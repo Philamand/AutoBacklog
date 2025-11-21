@@ -461,7 +461,7 @@ async def load_entitlements(entitlement_id: int) -> None:
 async def download_entitlements(download_id: int) -> None:
     try:
         entitlement_download = await EntitlementsDownload.objects.prefetch_related(
-            "user"
+            "user__account"
         ).aget(pk=download_id)
     except EntitlementsDownload.DoesNotExist:
         return
@@ -534,6 +534,8 @@ async def download_entitlements(download_id: int) -> None:
         print(e)
 
     finally:
+        entitlement_download.user.account.loading_data = False
+        await entitlement_download.user.account.asave()
         await entitlement_download.adelete()
 
 
