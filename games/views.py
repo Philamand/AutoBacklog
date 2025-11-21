@@ -114,6 +114,11 @@ class GameDetailView(LoginRequiredMixin, DetailView):
 
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["wishlist"] = self.request.session.get("wishlist", False)
+        return context
+
 
 class GameUpdateView(LoginRequiredMixin, UpdateView):
     model = Game
