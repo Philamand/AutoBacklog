@@ -317,6 +317,11 @@ class LibraryView(LoginRequiredMixin, ListView):
             },
         )
 
+        if self.kwargs.get("view") == "wishlist":
+            self.request.session["wishlist"] = True
+        else:
+            self.request.session["wishlist"] = False
+
         sort = self.request.session.get("sort", "name")
         if self.request.GET.get("sort"):
             sort = self.request.GET.get("sort")
@@ -433,7 +438,7 @@ class LibraryView(LoginRequiredMixin, ListView):
 
         if self.kwargs.get("view") == "shelf":
             context["shelf"] = True
-        if self.kwargs.get("view") == "wishlist":
+        if self.request.session.get("wishlist", False):
             context["wishlist"] = True
             self.request.session["wishlist"] = True
         else:
