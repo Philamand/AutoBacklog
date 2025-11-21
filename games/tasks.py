@@ -480,7 +480,6 @@ async def download_entitlements(download_id: int) -> None:
 
         for game_entitlement in client.game_entitlements():
             game_entitlements.append(game_entitlement)
-            break
 
         headers = {
             "apollographql-client-name": "PlayStationApp-Android",
