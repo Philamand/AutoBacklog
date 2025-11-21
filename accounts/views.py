@@ -155,8 +155,8 @@ def toggle_theme(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def upload_entitlements(request: HttpRequest) -> HttpResponse:
-    json_file = request.FILES["json_file"]
     try:
+        json_file = request.FILES["json_file"]
         data = json.load(json_file)
     except Exception:
         messages.error(request, "Please upload a valid JSON file.")
