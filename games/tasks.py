@@ -127,24 +127,24 @@ class TitleMeta(BaseModel):
 class GameEntitlement(BaseModel):
     """Represents a single game entitlement entry."""
 
-    activeDate: datetime
-    activeFlag: bool
+    activeDate: datetime | None = None
+    activeFlag: bool = False
     conceptMeta: ConceptMeta
-    consumedCount: int
+    consumedCount: int = 0
     entitlementAttributes: list[EntitlementAttribute]
     entitlementType: int
     featureType: int
-    gameMeta: GameMeta
+    gameMeta: GameMeta | None = None
     id: str
     isBeta: bool | None = None
     isConsumable: bool
     isGame: bool | None = None
-    isSubscription: bool
-    preorderFlag: bool
-    preorderPlaceholderFlag: bool
+    isSubscription: bool = False
+    preorderFlag: bool = False
+    preorderPlaceholderFlag: bool = False
     productId: str
-    remainingCount: int
-    revisionId: int
+    remainingCount: int = 0
+    revisionId: int = 0
     rewardMeta: RewardMeta
     serviceType: int | None = None
     skuId: str
@@ -347,6 +347,21 @@ async def load_entitlements(entitlement_id: int) -> None:
                 and entitlement.conceptMeta.conceptId not in update_games.keys()
             ):
                 try:
+                    if entitlement.rewardMeta.retentionPolicy == -1:
+                        playstation_title = (
+                            await PlayStationTitle.objects.filter(
+                                title_id=entitlement.titleMeta.titleId
+                            )
+                            .exclude(concept_id=None)
+                            .order_by("region")
+                            .afirst()
+                        )
+
+                        if playstation_title:
+                            entitlement.conceptMeta.conceptId = (
+                                playstation_title.concept_id
+                            )
+
                     game = await Game.objects.aget(
                         owner=entitlement_upload.user,
                         psn_id=entitlement.conceptMeta.conceptId,
@@ -362,10 +377,14 @@ async def load_entitlements(entitlement_id: int) -> None:
                         .afirst()
                     )
                     if playstation_title:
+                        ownership = "own"
+                        if entitlement.rewardMeta.retentionPolicy == -1:
+                            ownership = "wis"
                         game = Game(
                             owner=entitlement_upload.user,
                             title=playstation_title.name,
                             psn_id=entitlement.conceptMeta.conceptId,
+                            ownership=ownership,
                         )
                         create_games[entitlement.conceptMeta.conceptId] = game
 
@@ -384,6 +403,8 @@ async def load_entitlements(entitlement_id: int) -> None:
                     create_games[entitlement.conceptMeta.conceptId].ownership = "psp"
                 elif entitlement.rewardMeta.retentionPolicy == 5:
                     create_games[entitlement.conceptMeta.conceptId].ownership = "pgc"
+                elif entitlement.rewardMeta.retentionPolicy == -1:
+                    create_games[entitlement.conceptMeta.conceptId].ownership = "wis"
             elif entitlement.conceptMeta.conceptId in update_games.keys():
                 update_games[
                     entitlement.conceptMeta.conceptId
@@ -405,6 +426,11 @@ async def load_entitlements(entitlement_id: int) -> None:
                     and update_games[entitlement.conceptMeta.conceptId].track
                 ):
                     update_games[entitlement.conceptMeta.conceptId].ownership = "pgc"
+                elif (
+                    entitlement.rewardMeta.retentionPolicy == -1
+                    and update_games[entitlement.conceptMeta.conceptId].track
+                ):
+                    update_games[entitlement.conceptMeta.conceptId].ownership = "wis"
 
     async for user_game in Game.objects.filter(owner=entitlement_upload.user):
         if (
