@@ -936,6 +936,10 @@ async def get_account_id(user_id: int, playstation_username: str) -> None:
                 user.account.account_id = result["result"]["accountId"]
                 await user.account.asave()
                 await sync_to_async(load_games.send)(user.pk)
+            else:
+                user.account.loading_data = False
+                await user.account.asave()
+
             break
 
     except PSNAWPAuthenticationError:
