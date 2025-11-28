@@ -181,7 +181,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://redis:6379/2",
+        "LOCATION": f"{os.getenv('REDIS_URL')}/2",
     }
 }
 
@@ -191,7 +191,7 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
-        "url": "redis://redis:6379",
+        "url": os.getenv("REDIS_URL"),
     },
     "MIDDLEWARE": [
         "dramatiq.middleware.Prometheus",
