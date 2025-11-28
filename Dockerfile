@@ -6,6 +6,6 @@ ADD . /app
 WORKDIR /app
 RUN uv sync --locked
 
-RUN uv run manage.py collectstatic --no-input --clear
+RUN uv run manage.py collectstatic --no-input --clear --verbosity 2
 
 CMD uv run manage.py makemigrations --no-input && uv run manage.py migrate --no-input && uv run gunicorn --bind 0.0.0.0:8000 --workers 4 AutoBacklog.wsgi:application
