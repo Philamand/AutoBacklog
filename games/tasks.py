@@ -185,6 +185,10 @@ class TitleStatsResult(BaseModel):
     totalItemCount: int
 
 
+class HiddenGameListError(ValueError):
+    pass
+
+
 async def fetch_with_rate_limit(titleIds, access_token, max_limit=5):
     semaphore = Semaphore(max_limit)
 
@@ -249,7 +253,7 @@ async def get_title_stats(
             "error" in response.keys()
             and response["error"]["reason"] == "HiddenGamelist"
         ):
-            raise ValueError("HiddenGameList")
+            raise HiddenGameListError()
 
         titleStatsResults = TitleStatsResult(**response)
         offset = titleStatsResults.nextOffset
@@ -903,9 +907,8 @@ async def load_games(
     except PSNAWPAuthenticationError:
         psn_account.npsso_is_valid = False
 
-    except ValueError as e:
-        if e == "HiddenGameList":
-            user.account.is_public = False
+    except HiddenGameListError:
+        user.account.is_public = False
 
     finally:
         psn_account.available = True
