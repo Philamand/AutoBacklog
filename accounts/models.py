@@ -26,6 +26,7 @@ class Account(models.Model):
     last_updated = models.DateTimeField(blank=True, null=True)
     entitlements_offset = models.IntegerField(default=0)
     last_played = models.DateTimeField(blank=True, null=True)
+    is_public = models.BooleanField(default=True)
 
     def __str__(self):
         return self.user.username

@@ -233,6 +233,12 @@ def update_status(request: HttpRequest) -> HttpResponse:
             "PlayStation account not found. Please make sure that your account is public.",
         )
         response["HX-Redirect"] = "/accounts/settings/"
+    elif not user.account.is_public:
+        messages.error(
+            request,
+            "Your PlayStation game library is not public. Please go to your PlayStation's account settings to make it public.",
+        )
+        response["HX-Redirect"] = "/accounts/settings/"
     else:
         response["HX-Redirect"] = "/games/"
 

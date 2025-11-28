@@ -244,6 +244,13 @@ async def get_title_stats(
             f"https://m.np.playstation.com/api/gamelist/v2/users/{account_id}/titles?limit=100&offset={str(offset)}",
             access_token,
         )
+
+        if (
+            "error" in response.keys()
+            and response["error"]["reason"] == "HiddenGamelist"
+        ):
+            raise ValueError("HiddenGameList")
+
         titleStatsResults = TitleStatsResult(**response)
         offset = titleStatsResults.nextOffset
         for title in titleStatsResults.titles:
@@ -631,6 +638,7 @@ async def load_games(
     - PSNAWPAuthenticationError: If there is an issue authenticating with the PSNAWP API.
     """
     user = await User.objects.select_related("account").aget(pk=user_id)
+    user.account.is_public = True
     if not user.account.account_id:
         user.account.loading_data = False
         await user.account.asave()
@@ -894,6 +902,10 @@ async def load_games(
 
     except PSNAWPAuthenticationError:
         psn_account.npsso_is_valid = False
+
+    except ValueError as e:
+        if e == "HiddenGameList":
+            user.account.is_public = False
 
     finally:
         psn_account.available = True
