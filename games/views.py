@@ -178,7 +178,7 @@ def reset_filters(request: HttpRequest) -> HttpResponse:
     filters = {
         "status": ["unp", "unf", "bea", "com", "end"],
         "platform": "all",
-        "ownership": ["own", "psp", "pgc"],
+        "ownership": ["own", "phy", "psp", "pgc"],
         "active": "all",
     }
     request.session["filters"] = filters
